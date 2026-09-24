@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:17@sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f
+    environment:
+      POSTGRES_DB: mmath
+      POSTGRES_USER: mmath
+      POSTGRES_PASSWORD: ${MMATH_DB_PASSWORD:?Set MMATH_DB_PASSWORD in .env}
+    volumes:
+      - mmath-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmath -d mmath"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      MMATH_DATABASE_URL: postgresql+psycopg://mmath:${MMATH_DB_PASSWORD:?Set MMATH_DB_PASSWORD in .env}@postgres:5432/mmath
+      MMATH_ORIGIN: ${MMATH_ORIGIN:?Set MMATH_ORIGIN in .env}
+      MMATH_MODE: lan-http
+    command: ["/bin/sh", "-c", "/app/backend/.venv/bin/alembic -c /app/backend/alembic.ini upgrade head && exec /app/backend/.venv/bin/uvicorn mental_math.main:create_app --factory --host 0.0.0.0 --port 8000"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - api
+volumes:
+  mmath-postgres:
