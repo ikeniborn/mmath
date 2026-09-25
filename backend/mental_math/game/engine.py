@@ -35,7 +35,7 @@ TIMING_TOLERANCE = timedelta(seconds=5)
 def public_problem(problem: Problem | None) -> PublicProblem | None:
     if problem is None:
         return None
-    return PublicProblem(id=problem.id, ordinal=problem.ordinal, skill=problem.skill, band=problem.band, operation=problem.operation, operand_a=problem.operand_a, operand_b=problem.operand_b)
+    return PublicProblem(id=problem.id, ordinal=problem.ordinal, skill=problem.skill, band=problem.band, operation=problem.operation, operand_a=problem.operand_a, operand_b=problem.operand_b, kind=problem.kind, prompt=problem.prompt)
 
 
 async def snapshot(db: AsyncSession, session: LearningSession) -> SessionSnapshot:
@@ -71,7 +71,7 @@ async def _issue(db: AsyncSession, session: LearningSession, ordinal: int, *, cu
     code, band = next_skill(session.settings, await _automatic_bands(db, session.player_id), current, action)
     session.skill_run = session.skill_run + 1 if code == current else 1
     generated = generate(code, session.id, ordinal, band)
-    problem = Problem(session_id=session.id, ordinal=ordinal, skill=generated.skill, band=generated.band, operation=generated.operation, operand_a=generated.operand_a, operand_b=generated.operand_b, correct_answer=generated.correct_answer)
+    problem = Problem(session_id=session.id, ordinal=ordinal, skill=generated.skill, band=generated.band, operation=generated.operation, operand_a=generated.operand_a, operand_b=generated.operand_b, correct_answer=generated.correct_answer, kind=generated.kind, prompt=generated.prompt)
     if action == "hint":
         problem.hinted_at = now()
     return problem

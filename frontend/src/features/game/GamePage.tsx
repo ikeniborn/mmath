@@ -8,7 +8,8 @@ import NumberPad from './NumberPad';
 import SessionSummary from './SessionSummary';
 import { clearPending, loadPending, savePending, type PendingSubmission } from './pendingSubmission';
 import { gameReducer, initialState } from './sessionReducer';
-import { expression as formatExpression } from './labels';
+import ChoicePad from './ChoicePad';
+import { choices, isChoice, promptParts } from './prompt';
 import { useT } from '../../i18n';
 
 /** Foreground time for the current task: counts only while the tab is visible. */
@@ -78,11 +79,16 @@ export default function GamePage({ players }: { players: Player[] }) {
 
   if (!player) return <section><h2>{t('notFound.title')}</h2><Link to="/">{t('notFound.back')}</Link></section>;
 
-  async function submit() {
-    if (!snapshot?.current_problem || entry === '' || status !== 'ready') return;
-    const pending: PendingSubmission = { player_id: id, session_id: snapshot.id, command: { submission_id: uuidv7(), problem_id: snapshot.current_problem.id, answer: Number(entry), response_ms: elapsed(), expected_version: snapshot.version } };
+  async function submitValue(value: number) {
+    if (!snapshot?.current_problem || status !== 'ready') return;
+    const pending: PendingSubmission = { player_id: id, session_id: snapshot.id, command: { submission_id: uuidv7(), problem_id: snapshot.current_problem.id, answer: value, response_ms: elapsed(), expected_version: snapshot.version } };
     savePending(pending);
     await submitPending(pending);
+  }
+
+  async function submit() {
+    if (entry === '') return;
+    await submitValue(Number(entry));
   }
 
   async function withSnapshot(call: () => Promise<SessionSnapshot>) {
@@ -106,21 +112,24 @@ export default function GamePage({ players }: { players: Player[] }) {
   if (snapshot.state === 'finished') return <SessionSummary player={player} snapshot={snapshot} headingRef={heading} />;
 
   const problem = snapshot.current_problem;
-  const expression = problem ? formatExpression(problem.operation, problem.operand_a, problem.operand_b) : '';
+  const parts = problem ? promptParts(problem, t) : [];
+  const choice = problem ? isChoice(problem) : false;
+  const expression = parts.map(part => part ?? '?').join('');
   const answering = snapshot.phase === 'answer';
+  const shown = answering ? (entry || '?') : String(snapshot.feedback?.submitted_answer ?? '');
   return <section className="game" onKeyDown={event => {
-    if (!answering || status !== 'ready') return;
+    if (!answering || status !== 'ready' || choice) return;
     if (/^[0-9]$/.test(event.key)) dispatch({ type: 'digit', digit: event.key });
     else if (event.key === 'Backspace') dispatch({ type: 'erase' });
     else if (event.key === 'Enter') void submit();
   }}>
     <h2 ref={heading} tabIndex={-1}>{answering ? t('game.task', { n: problem?.ordinal ?? 0, total: snapshot.total_problems }) : (snapshot.feedback?.correct ? t('game.correct') : t('game.wrong'))}</h2>
     {problem && <p className="band">{t('game.level', { skill: name('skill', problem.skill), band: problem.band })}</p>}
-    <p className="expression" aria-label={t('game.expression', { expression })}>{expression} = <span className="answer">{answering ? (entry || '?') : snapshot.feedback?.submitted_answer}</span></p>
+    <p className="expression" aria-label={t('game.expression', { expression })}>{parts.map((part, index) => part === null ? <span key={index} className="answer">{shown}</span> : <span key={index}>{part}</span>)}</p>
     {answering && snapshot.hint && <Hint hint={snapshot.hint} theme={player.theme} />}
     {answering ? <>
       <p role="status" aria-live="polite">{message}</p>
-      <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />
+      {choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
       {!snapshot.hint && <button type="button" className="secondary" disabled={status !== 'ready'} onClick={hint}>{t('game.hint')}</button>}
     </> : <Feedback snapshot={snapshot} note={message} onAdvance={advance} />}
     {status === 'offline' && <button type="button" onClick={retry}>{t('app.retry')}</button>}

@@ -9,7 +9,7 @@ class PlayerInput(BaseModel):
     name: str = Field(min_length=1, max_length=40)
     age: int = Field(ge=5, le=10)
     avatar: Literal["star", "rocket", "fox", "owl"] = "star"
-    topics: list[Literal["addition", "subtraction", "multiplication"]] = Field(min_length=1)
+    topics: list[Literal["addition", "subtraction", "counting", "multiplication", "division", "comparison"]] = Field(min_length=1)
     mode: Literal["automatic", "fixed"] = "automatic"
     difficulty_band: int | None = Field(default=None, ge=0, le=4)
     session_minutes: Literal[5, 10, 15] = 10
@@ -39,7 +39,7 @@ class PlayerPatch(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=40)
     age: int | None = Field(default=None, ge=5, le=10)
     avatar: Literal["star", "rocket", "fox", "owl"] | None = None
-    topics: list[Literal["addition", "subtraction", "multiplication"]] | None = Field(default=None, min_length=1)
+    topics: list[Literal["addition", "subtraction", "counting", "multiplication", "division", "comparison"]] | None = Field(default=None, min_length=1)
     mode: Literal["automatic", "fixed"] | None = None
     difficulty_band: int | None = Field(default=None, ge=0, le=4)
     session_minutes: Literal[5, 10, 15] | None = None

@@ -14,6 +14,7 @@ answer.
 | First durable lesson (sessions, addition tasks, idempotent answers, resume, finish) | done |
 | Child navigation, visual hints, foreground time limits, exact resume across tabs and reloads | done |
 | Skill catalogue (addition/subtraction 0–4, doubles, near-doubles, make-ten, ×2, ×3), mastery, automatic and fixed difficulty, progress page | done |
+| Research-based task set: 47 skills in six topics (addition, subtraction, counting, multiplication, division, comparison) with seven answer shapes | done |
 | Visual themes per child profile: flowers, dolls, cars, construction machinery (hint counters use the chosen icons) | done |
 | Russian and English interface: detected from the browser, switchable in the header, remembered per browser | done |
 | Public Docker release, PWA, GPU policy | planned |
@@ -50,6 +51,27 @@ Regenerate the frontend API contract after changing routes or schemas:
 uv run --project backend python scripts/export_openapi.py
 frontend/node_modules/.bin/openapi-typescript frontend/src/api-schema.json -o frontend/src/api-types.ts
 ```
+
+## Task catalogue
+
+Six parent-selectable topics, 47 skills, bands 0–4 (within 5–10, within 10, bridging ten within 20, within
+20/50, within 100 or 1000 for scaled facts). Families follow the DfE ready-to-progress criteria (Years 1–4),
+the Russian grade 1–4 mental-arithmetic programme and soroban chain practice:
+
+- **Addition**: facts by band, doubles, near doubles, make ten, number bonds to 10/20/100, missing addend,
+  add 9/11 and near tens, two-digit addition, tens and hundreds facts, chains of 3–4 terms.
+- **Subtraction**: facts by band, difference by counting up, subtract 9/11, two-digit subtraction, tens and
+  hundreds facts, missing subtrahend.
+- **Counting and numbers**: number neighbours (±1), ten more/less, skip counting by 2/3/4/5/10, odd and even,
+  missing operation sign.
+- **Multiplication**: tables 2–10, missing factor, repeated addition, ×10 and ×100, two-digit × one-digit,
+  round numbers.
+- **Division**: halves, division facts 2–10, ÷10 and ÷100, two-digit ÷ one-digit, quotient and remainder.
+- **Comparison**: numbers and expressions with `<`, `=`, `>`.
+
+Answer shapes: a number (result, missing operand, chain, next term, remainder) or a choice (sign, odd/even,
+operator). Every generator is deterministic per session and ordinal and is covered by per-band property tests.
+Out of scope: word problems, rebuses, numbers above 1000 and timed flash display.
 
 ## Difficulty rules
 

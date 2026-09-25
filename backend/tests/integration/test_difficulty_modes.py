@@ -1,7 +1,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from tests.conftest import Family
+from tests.conftest import Family, solve, wrong
 
 PASSWORD = "correct horse battery staple"
 
@@ -15,10 +15,10 @@ async def play(family: Family, session: dict, *, correct: bool, hint: bool = Fal
             hinted = await family.post(f"/sessions/{session['id']}/hint", json={"problem_id": problem["id"], "expected_version": version})
             assert hinted.status_code == 200, hinted.text
             version = hinted.json()["session"]["version"]
-        answer = {"addition": problem["operand_a"] + problem["operand_b"], "subtraction": problem["operand_a"] - problem["operand_b"], "multiplication": problem["operand_a"] * problem["operand_b"]}[problem["operation"]]
+        answer = solve(problem)
         from uuid6 import uuid7
 
-        body = {"submission_id": str(uuid7()), "problem_id": problem["id"], "answer": answer if correct else answer + 100, "response_ms": 1500, "expected_version": version}
+        body = {"submission_id": str(uuid7()), "problem_id": problem["id"], "answer": answer if correct else wrong(problem, answer), "response_ms": 1500, "expected_version": version}
         answered = await family.post(f"/sessions/{session['id']}/attempts", json=body)
         assert answered.status_code == 200, answered.text
         result = answered.json()
@@ -51,9 +51,8 @@ async def test_fixed_band_never_moves_but_mastery_still_updates(family):
     session = await play(family, session, correct=False, count=3)
     assert session["current_problem"]["band"] == 2 and session["state"] == "active"
     progress = (await family.get(f"/players/{family.player_id}/progress")).json()
-    skill = next(row for row in progress["skills"] if row["skill"] == "addition")
-    assert skill["attempts"] == 9 and skill["correct"] == 6 and skill["mastery"] is not None
-    assert skill["formula_version"].startswith("mastery-v1")
+    assert sum(row["attempts"] for row in progress["skills"]) == 9 and sum(row["correct"] for row in progress["skills"]) == 6
+    assert all(row["band"] == 2 and row["mastery"] is not None and row["formula_version"].startswith("mastery-v1") for row in progress["skills"])
 
 
 INITIAL_BANDS = {"addition": 0, "doubles": 1, "near_doubles": 1, "make_ten": 1}

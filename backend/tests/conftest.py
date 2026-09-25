@@ -117,3 +117,33 @@ def counts(app):
             return {"attempts": attempts, "decisions": decisions, "hinted_problems": hinted_problems, "hinted_attempts": hinted_attempts}
 
     return query
+
+
+def solve(problem: dict) -> int:
+    """Independent solver for every public task shape; never reads server-only fields."""
+    a, b, kind, prompt = problem["operand_a"], problem["operand_b"], problem["kind"], problem["prompt"] or {}
+    ops = {"addition": lambda x, y: x + y, "subtraction": lambda x, y: x - y, "multiplication": lambda x, y: x * y, "division": lambda x, y: x // y, "remainder": lambda x, y: x % y}
+    if kind == "result":
+        return ops[problem["operation"]](a, b)
+    if kind == "missing":
+        return a if prompt["blank"] == "a" else b
+    if kind == "chain":
+        return sum(prompt["terms"])
+    if kind == "sequence":
+        return prompt["terms"][-1] + prompt["step"]
+    if kind == "compare":
+        return -1 if a < b else 1 if a > b else 0
+    if kind == "parity":
+        return prompt["value"] % 2
+    if kind == "operator":
+        return [a + b, a - b, a * b].index(prompt["result"])
+    raise AssertionError(kind)
+
+
+def wrong(problem: dict, answer: int) -> int:
+    """A guaranteed-wrong answer for any task shape."""
+    if problem["kind"] == "compare":
+        return -1 if answer != -1 else 1
+    if problem["kind"] in {"parity", "operator"}:
+        return (answer + 1) % 2 if problem["kind"] == "parity" else (answer + 1) % 3
+    return answer + 100

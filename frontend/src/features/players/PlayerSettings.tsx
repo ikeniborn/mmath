@@ -4,7 +4,7 @@ import { api, ApiError, type Player } from '../../api';
 import { useT } from '../../i18n';
 import ThemeSelect from './ThemeSelect';
 
-const TOPICS = ['addition', 'subtraction', 'multiplication'] as const;
+const TOPICS = ['addition', 'subtraction', 'counting', 'multiplication', 'division', 'comparison'] as const;
 
 export default function PlayerSettings({ players, onChange }: { players: Player[]; onChange: () => Promise<void> }) {
   const { t, name } = useT();

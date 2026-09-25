@@ -317,16 +317,13 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "counters" | "ten_frame" | "number_line" | "groups";
+            kind: "counters" | "ten_frame" | "number_line" | "groups" | "pairs";
             /** Operand A */
             operand_a: number;
             /** Operand B */
             operand_b: number;
-            /**
-             * Operation
-             * @enum {string}
-             */
-            operation: "addition" | "subtraction" | "multiplication";
+            /** Operation */
+            operation: string;
             /** Scale */
             scale: number;
         };
@@ -368,7 +365,7 @@ export interface components {
              */
             theme: "flowers" | "dolls" | "cars" | "construction";
             /** Topics */
-            topics: ("addition" | "subtraction" | "multiplication")[];
+            topics: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison")[];
         };
         /** PlayerPatch */
         PlayerPatch: {
@@ -387,7 +384,7 @@ export interface components {
             /** Theme */
             theme?: ("flowers" | "dolls" | "cars" | "construction") | null;
             /** Topics */
-            topics?: ("addition" | "subtraction" | "multiplication")[] | null;
+            topics?: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison")[] | null;
         };
         /** PlayerView */
         PlayerView: {
@@ -427,7 +424,7 @@ export interface components {
              */
             theme: "flowers" | "dolls" | "cars" | "construction";
             /** Topics */
-            topics: ("addition" | "subtraction" | "multiplication")[];
+            topics: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison")[];
         };
         /** ProgressView */
         ProgressView: {
@@ -447,6 +444,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "result" | "missing" | "chain" | "sequence" | "compare" | "parity" | "operator";
             /** Operand A */
             operand_a: number;
             /** Operand B */
@@ -455,6 +457,10 @@ export interface components {
             operation: string;
             /** Ordinal */
             ordinal: number;
+            /** Prompt */
+            prompt: {
+                [key: string]: unknown;
+            } | null;
             /** Skill */
             skill: string;
         };

@@ -12,15 +12,22 @@ def test_every_skill_band_pair_keeps_bounds_and_deterministic_answers(code):
     for band in entry.bands:
         for ordinal in range(200):
             problem = generate(code, uuid4(), ordinal, band)
-            assert problem.skill == code and problem.band == band and problem.operation == entry.operation
+            assert problem.skill == code and problem.band == band and (entry.operation == "mixed" or problem.operation == entry.operation)
             assert problem.operand_a >= 0 and problem.operand_b >= 0
-            assert entry.check(problem.operand_a, problem.operand_b, band), (code, band, problem)
-            if entry.operation == "addition":
+            assert entry.check(problem), (code, band, problem)
+            if problem.kind == "result" and entry.operation == "addition":
                 assert problem.correct_answer == problem.operand_a + problem.operand_b
-            elif entry.operation == "subtraction":
+            elif problem.kind == "result" and entry.operation == "subtraction":
                 assert problem.correct_answer == problem.operand_a - problem.operand_b >= 0
-            else:
+            elif problem.kind == "result" and entry.operation == "multiplication":
                 assert problem.correct_answer == problem.operand_a * problem.operand_b
+            elif problem.kind == "result" and entry.operation == "division":
+                assert problem.correct_answer == problem.operand_a // problem.operand_b
+            elif problem.kind == "missing":
+                expected = {"addition": problem.operand_a + problem.operand_b, "subtraction": problem.operand_a - problem.operand_b, "multiplication": problem.operand_a * problem.operand_b}[entry.operation]
+                assert problem.prompt["result"] == expected and problem.correct_answer == (problem.operand_a if problem.prompt["blank"] == "a" else problem.operand_b)
+            elif problem.kind == "chain":
+                assert problem.correct_answer == sum(problem.prompt["terms"])
 
 
 def test_band_semantics_of_the_baseline_skills():
@@ -54,3 +61,33 @@ def test_fixed_mode_eligibility_reports_supported_alternatives():
     assert ("addition", 1) in pairs and ("make_ten", 1) in pairs and ("doubles", 1) in pairs
     assert all(band == 1 for _, band in pairs)
     assert ("multiplication_2", 2) not in eligible_pairs(["addition"], "fixed", 2)
+
+
+def test_research_families_have_the_expected_shapes():
+    session = uuid4()
+    for ordinal in range(60):
+        bond = generate("number_bonds", session, ordinal, 4)
+        assert bond.kind == "missing" and bond.prompt["result"] == 100
+        chain = generate("chain_add", session, ordinal, 4)
+        assert chain.kind == "chain" and len(chain.prompt["terms"]) == 4 and any(term < 0 for term in chain.prompt["terms"]) and 0 <= chain.correct_answer <= 100
+        seq = generate("skip_counting", session, ordinal, 2)
+        assert seq.kind == "sequence" and seq.prompt["step"] == 5 and seq.prompt["terms"] == [seq.prompt["terms"][0] + i * 5 for i in range(3)]
+        assert generate("odd_even", session, ordinal, 1).correct_answer in {0, 1}
+        op = generate("missing_operator", session, ordinal, 4)
+        a, b, result = op.operand_a, op.operand_b, op.prompt["result"]
+        assert [a + b, a - b, a * b][op.correct_answer] == result
+        cmp = generate("compare", session, ordinal, 3)
+        assert cmp.kind == "compare" and cmp.correct_answer == (-1 if cmp.operand_a < cmp.operand_b else 1 if cmp.operand_a > cmp.operand_b else 0)
+        assert "+" in cmp.prompt["left"] or "−" in cmp.prompt["left"]
+        rem = generate("remainder", session, ordinal, 4)
+        assert rem.correct_answer == rem.operand_a % rem.operand_b
+        assert generate("multiply_by_10", session, ordinal, 4).correct_answer <= 1000
+        assert generate("two_digit_divide", session, ordinal, 4).operand_a % generate("two_digit_divide", session, ordinal, 4).operand_b == 0
+        assert generate("multiplication_7", session, ordinal, 4).operand_b == 7 and generate("division_8", session, ordinal, 3).operand_b == 8
+
+
+def test_catalogue_covers_every_topic_and_no_word_problems():
+    from mental_math.game.catalogue import TOPICS
+    assert set(TOPICS) == {skill.topic for skill in CATALOGUE.values()}
+    assert len(CATALOGUE) >= 40
+    assert all(set(supported_bands([topic])) for topic in TOPICS)

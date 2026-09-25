@@ -4,6 +4,8 @@
 def classify(problem, answer: int) -> str | None:
     if answer == problem.correct_answer:
         return None
+    if getattr(problem, "kind", "result") in {"compare", "parity", "operator"}:
+        return "other"
     if abs(answer - problem.correct_answer) == 1:
         return "off_by_one"
     a, b = problem.operand_a, problem.operand_b

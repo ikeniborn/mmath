@@ -11,7 +11,7 @@ class StartSession(BaseModel):
 class SubmitAttempt(BaseModel):
     submission_id: UUID
     problem_id: UUID
-    answer: int = Field(ge=-1000, le=1000)
+    answer: int = Field(ge=-1, le=100_000)
     response_ms: int | None = Field(default=None, ge=0, le=3_600_000)
     expected_version: int = Field(ge=1)
 
@@ -22,8 +22,8 @@ class HintRequest(BaseModel):
 
 
 class HintView(BaseModel):
-    kind: Literal["counters", "ten_frame", "number_line", "groups"]
-    operation: Literal["addition", "subtraction", "multiplication"]
+    kind: Literal["counters", "ten_frame", "number_line", "groups", "pairs"]
+    operation: str
     operand_a: int
     operand_b: int
     scale: int
@@ -42,6 +42,8 @@ class PublicProblem(BaseModel):
     operation: str
     operand_a: int
     operand_b: int
+    kind: Literal["result", "missing", "chain", "sequence", "compare", "parity", "operator"]
+    prompt: dict | None
 
 
 class Feedback(BaseModel):

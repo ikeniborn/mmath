@@ -159,7 +159,8 @@
               "counters",
               "ten_frame",
               "number_line",
-              "groups"
+              "groups",
+              "pairs"
             ],
             "title": "Kind",
             "type": "string"
@@ -173,11 +174,6 @@
             "type": "integer"
           },
           "operation": {
-            "enum": [
-              "addition",
-              "subtraction",
-              "multiplication"
-            ],
             "title": "Operation",
             "type": "string"
           },
@@ -284,7 +280,10 @@
               "enum": [
                 "addition",
                 "subtraction",
-                "multiplication"
+                "counting",
+                "multiplication",
+                "division",
+                "comparison"
               ],
               "type": "string"
             },
@@ -414,7 +413,10 @@
                   "enum": [
                     "addition",
                     "subtraction",
-                    "multiplication"
+                    "counting",
+                    "multiplication",
+                    "division",
+                    "comparison"
                   ],
                   "type": "string"
                 },
@@ -509,7 +511,10 @@
               "enum": [
                 "addition",
                 "subtraction",
-                "multiplication"
+                "counting",
+                "multiplication",
+                "division",
+                "comparison"
               ],
               "type": "string"
             },
@@ -567,6 +572,19 @@
             "title": "Id",
             "type": "string"
           },
+          "kind": {
+            "enum": [
+              "result",
+              "missing",
+              "chain",
+              "sequence",
+              "compare",
+              "parity",
+              "operator"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "operand_a": {
             "title": "Operand A",
             "type": "integer"
@@ -583,6 +601,18 @@
             "title": "Ordinal",
             "type": "integer"
           },
+          "prompt": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          },
           "skill": {
             "title": "Skill",
             "type": "string"
@@ -595,7 +625,9 @@
           "band",
           "operation",
           "operand_a",
-          "operand_b"
+          "operand_b",
+          "kind",
+          "prompt"
         ],
         "title": "PublicProblem",
         "type": "object"
@@ -917,8 +949,8 @@
       "SubmitAttempt": {
         "properties": {
           "answer": {
-            "maximum": 1000.0,
-            "minimum": -1000.0,
+            "maximum": 100000.0,
+            "minimum": -1.0,
             "title": "Answer",
             "type": "integer"
           },

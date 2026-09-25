@@ -20,6 +20,11 @@ export default function Hint({ hint, theme }: { hint: HintView; theme: Theme }) 
       <div className={styles.row}>{icons(hint.operand_b, iconB)}</div>
     </div>;
   }
+  if (hint.kind === 'pairs') {
+    return <div className={styles.hint} role="img" aria-label={t('hint.pairs', { a: hint.operand_a })}>
+      <div className={styles.row}>{Array.from({ length: hint.operand_a }, (_, index) => <span key={index} className={`${styles.icon} ${index % 2 ? styles.pairGap : ''}`} aria-hidden="true">{index % 2 ? iconB : iconA}</span>)}</div>
+    </div>;
+  }
   if (hint.kind === 'groups') {
     return <div className={styles.hint} role="img" aria-label={t('hint.groups', params)}>
       {Array.from({ length: hint.operand_b }, (_, row) => <div key={row} className={styles.row}>{icons(hint.operand_a, row % 2 ? iconB : iconA)}</div>)}
@@ -31,7 +36,7 @@ export default function Hint({ hint, theme }: { hint: HintView; theme: Theme }) 
     const cells = Array.from({ length: 20 }, (_, index) => index < first ? styles.filledA : index < first + hint.operand_b ? (subtraction ? styles.removed : styles.filledB) : '');
     return <div className={styles.hint} role="img" aria-label={t(subtraction ? 'hint.tenSub' : 'hint.tenAdd', params)}><div className={styles.frame}>{cells.map((fill, index) => <span key={index} className={`${styles.cell} ${fill}`} />)}</div></div>;
   }
-  const step = hint.scale > 20 ? 5 : 1;
+  const step = hint.scale > 100 ? 100 : hint.scale > 20 ? 5 : 1;
   const ticks = Array.from({ length: hint.scale / step + 1 }, (_, index) => index * step);
   const direction = t(hint.operation === 'subtraction' ? 'hint.back' : 'hint.forward');
   return <div className={styles.hint} role="img" aria-label={t('hint.line', { ...params, direction })}>
