@@ -43,7 +43,7 @@ async def read_session(session_id: UUID, request: Request, db: AsyncSession = De
 @router.post("/{session_id}/attempts", response_model=AttemptResult)
 async def submit_attempt(session_id: UUID, body: SubmitAttempt, request: Request, db: AsyncSession = Depends(get_db, scope="function")):
     account = await _mutating_account(request, db)
-    return await engine.submit_attempt(db, account.id, session_id, body)
+    return await engine.submit_attempt(db, account.id, session_id, body, policy=getattr(request.app.state, "policy", None))
 
 
 @router.post("/{session_id}/hint", response_model=HintResult)

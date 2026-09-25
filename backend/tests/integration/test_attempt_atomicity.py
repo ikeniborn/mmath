@@ -8,10 +8,10 @@ from mental_math.game.schemas import SubmitAttempt
 
 @pytest.mark.asyncio
 async def test_failure_before_commit_leaves_no_attempt(monkeypatch, family, lesson, counts):
-    def explode(*args, **kwargs):
+    async def explode(*args, **kwargs):
         raise RuntimeError("injected failure after the attempt row was written")
 
-    monkeypatch.setattr(engine, "decide", explode)
+    monkeypatch.setattr(engine, "resolve", explode)
     with pytest.raises(RuntimeError):
         await family.post(f"/sessions/{lesson.session_id}/attempts", json=lesson.command)
     assert (await counts(family.player_id)) == {"attempts": 0, "decisions": 0, "hinted_problems": 0, "hinted_attempts": 0}

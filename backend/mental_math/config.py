@@ -8,6 +8,10 @@ class Settings:
     database_url: str
     origin: str
     mode: str
+    policy_mode: str = "rules"
+    framework_url: str | None = None
+    framework_model: str = "laya-auto"
+    framework_token_file: str | None = None
 
     @property
     def allowed_hosts(self) -> tuple[str, ...]:
@@ -25,4 +29,10 @@ class Settings:
             raise RuntimeError("Public mode requires an HTTPS origin")
         if mode == "lan-http" and not origin.startswith("http://"):
             raise RuntimeError("LAN mode requires an explicit HTTP origin")
-        return cls(database_url, origin.rstrip("/"), mode)
+        policy_mode = os.environ.get("MMATH_POLICY_MODE", "rules")
+        if policy_mode not in {"rules", "shadow"}:
+            raise RuntimeError("MMATH_POLICY_MODE must be rules or shadow; active requires the calibrated rollout checkpoint")
+        framework_url = os.environ.get("MMATH_FRAMEWORK_URL") or None
+        if policy_mode == "shadow" and not framework_url:
+            raise RuntimeError("MMATH_FRAMEWORK_URL is required for shadow policy mode")
+        return cls(database_url, origin.rstrip("/"), mode, policy_mode, framework_url, os.environ.get("MMATH_FRAMEWORK_MODEL", "laya-auto"), os.environ.get("MMATH_FRAMEWORK_TOKEN_FILE") or None)

@@ -14,7 +14,7 @@ def decide(state: PolicyState, proposal: PolicyProposal | None = None) -> Policy
         applied, reason = chosen.action, None
     else:
         applied, reason = rules_proposal(state).action, "illegal_action"
-    return PolicyDecisionRecord(allowed_actions=allowed, mode=state.mode, proposal=chosen, applied_action=applied, latency_ms=int((time.perf_counter() - started) * 1000), fallback_reason=reason)
+    return PolicyDecisionRecord(allowed_actions=allowed, mode=state.mode, proposal=chosen, applied_action=applied, latency_ms=int((time.perf_counter() - started) * 1000), fallback_reason=reason, policy_mode="rules", rule_action=rules_proposal(state).action)
 
 
 def state_payload(state: PolicyState) -> dict:

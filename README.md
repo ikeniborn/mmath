@@ -19,7 +19,8 @@ answer.
 | Russian and English interface: detected from the browser, switchable in the header, remembered per browser | done |
 | Deployment behind the external Traefik edge and the platform PostgreSQL: one-shot migrations, readiness, metrics, redacted JSON logs, isolated deployment check, backup drill | done |
 | Connected mobile PWA: manifest, icons, standalone install, service worker caching only the public shell, connection-required page, safe-screen updates | done |
-| GPU policy (shadow, evaluation, guarded active) | planned |
+| Framework System One shadow policy: bounded 350 ms proposals recorded beside the rule decision, typed failure taxonomy, no retry on 429 | done (live smoke blocked until Framework publishes the route) |
+| Learning evidence export and offline evaluation, guarded active policy | planned |
 
 ## Stack
 
@@ -88,6 +89,14 @@ the Russian grade 1–4 mental-arithmetic programme and soroban chain practice:
 Answer shapes: a number (result, missing operand, chain, next term, remainder) or a choice (sign, odd/even,
 operator). Every generator is deterministic per session and ordinal and is covered by per-band property tests.
 Out of scope: word problems, rebuses, numbers above 1000 and timed flash display.
+
+## Policy modes
+
+`MMATH_POLICY_MODE=rules` (default) decides with the deterministic rules only. `shadow` also asks the
+Framework System One route for a proposal inside the answer transaction under one 350 ms total deadline,
+records proposal or typed failure (`busy`, `timeout`, `http_4xx`, `http_5xx`, `malformed`, `oversized`,
+`network`) in the audit row and still applies the rule action. The state sent to inference is aggregated and
+identity-free; the bearer token comes from a mounted file. See `docs/runbooks/framework-integration.md`.
 
 ## Difficulty rules
 

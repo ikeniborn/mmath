@@ -25,11 +25,16 @@ class PolicyState:
 
 @dataclass(frozen=True)
 class PolicyProposal:
-    action: str
+    action: str | None
     confidence: float | None
     provider: str
-    model_version: str
+    model_version: str | None
     failure_code: str | None = None
+
+    @classmethod
+    def failure(cls, code: str, provider: str = "framework") -> "PolicyProposal":
+        """Typed failure with no action, confidence or model; the code is from the reviewed taxonomy only."""
+        return cls(action=None, confidence=None, provider=provider, model_version=None, failure_code=code)
 
 
 @dataclass(frozen=True)
@@ -40,6 +45,8 @@ class PolicyDecisionRecord:
     applied_action: str
     latency_ms: int
     fallback_reason: str | None
+    policy_mode: str = "rules"
+    rule_action: str | None = None
 
 
 class PolicyTransport(Protocol):

@@ -8,6 +8,8 @@ from mental_math.db import session_factory
 from mental_math.game.routes import router as game_router
 from mental_math.health import router as health_router
 from mental_math.observability import configure_logging, metrics, request_metrics
+from mental_math.policy.framework import build_transport
+from mental_math.policy.runtime import PolicyRuntime
 from mental_math.players.routes import router as players_router
 
 
@@ -17,6 +19,9 @@ def create_app() -> FastAPI:
     app.state.settings = settings
     app.state.session_factory = session_factory(settings.database_url)
     app.state.logger = configure_logging()
+    transport = build_transport(settings.framework_url, settings.framework_model, settings.framework_token_file) if settings.policy_mode == "shadow" and settings.framework_url else None
+    app.state.policy = PolicyRuntime(mode=settings.policy_mode, transport=transport)
+    app.state.logger.info("policy runtime", extra={"policy_mode": settings.policy_mode, "framework_model": settings.framework_model, "framework_configured": bool(settings.framework_url)})
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=list(settings.allowed_hosts))
     app.include_router(accounts_router)
     app.include_router(players_router)

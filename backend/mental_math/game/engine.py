@@ -23,7 +23,8 @@ from mental_math.game.validator import grade
 from mental_math.observability import metrics
 from mental_math.players.models import Player
 from mental_math.players.service import owned_player
-from mental_math.policy.service import decide, state_payload
+from mental_math.policy.runtime import PolicyRuntime, resolve
+from mental_math.policy.service import state_payload
 from mental_math.policy.types import PolicyState
 from mental_math.student.errors import classify
 from mental_math.student.models import PlayerSkill
@@ -125,7 +126,7 @@ def _validated_timing(session: LearningSession, response_ms: int | None) -> int 
     return response_ms if timedelta(milliseconds=response_ms) <= elapsed else None
 
 
-async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, command: SubmitAttempt) -> AttemptResult:
+async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, command: SubmitAttempt, policy: PolicyRuntime | None = None) -> AttemptResult:
     player, session = await _owned_session(db, account_id, session_id)
     replay = await db.scalar(select(Attempt).where(Attempt.submission_id == command.submission_id, Attempt.session_id == session.id))
     if replay is not None:
@@ -151,12 +152,12 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
     low, high = band_bounds(problem.skill)
     eligible = len(skills_for_topics(session.settings["topics"]))
     state = PolicyState(skill=problem.skill, band=problem.band, min_band=low, max_band=high, mode=session.settings["mode"], attempts=skill.attempts, correct=skill.correct, mastery=skill.mastery, correct_streak=session.correct_streak, error_streak=session.error_streak, session_answered=session.answered_count, skill_run=session.skill_run, last_correct=correct, last_hinted=hinted, other_skills=max(0, eligible - 1))
-    decision = decide(state)
+    decision = await resolve(state, policy)
     if session.settings["mode"] == "automatic" and decision.applied_action in {"harder", "easier"}:
         skill.band = step_band(problem.skill, skill.band, decision.applied_action)
         session.correct_streak = 0
         session.error_streak = 0
-    record = PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason)
+    record = PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, policy_mode=decision.policy_mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, rule_action=decision.rule_action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason)
     db.add(record)
     metrics.observe_attempt(correct=correct, applied_action=decision.applied_action, fallback_reason=decision.fallback_reason, latency_ms=decision.latency_ms, mode=decision.mode)
     session.feedback = Feedback(correct=correct, submitted_answer=command.answer, correct_answer=problem.correct_answer).model_dump()

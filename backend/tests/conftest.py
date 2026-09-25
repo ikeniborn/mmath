@@ -147,3 +147,48 @@ def wrong(problem: dict, answer: int) -> int:
     if problem["kind"] in {"parity", "operator"}:
         return (answer + 1) % 2 if problem["kind"] == "parity" else (answer + 1) % 3
     return answer + 100
+
+
+class FakeTransport:
+    """Test-only transport: controls only input/output and failure behaviour, never the decision logic."""
+
+    def __init__(self, app):
+        self.app = app
+        self.action = "repeat"
+        self.confidence: float | None = None
+        self.behaviour = "ok"
+        self.delay = 0.0
+        self.calls = 0
+        self.requests: list[dict] = []
+
+    async def predict(self, state, allowed_actions):
+        import asyncio
+        from dataclasses import asdict
+
+        from mental_math.policy.framework import TransportFailure
+        from mental_math.policy.types import PolicyProposal
+
+        self.calls += 1
+        self.requests.append({"state": asdict(state), "allowed_actions": list(allowed_actions)})
+        if self.behaviour == "slow":
+            await asyncio.sleep(self.delay)
+        if self.behaviour != "ok" and self.behaviour != "slow":
+            raise TransportFailure(self.behaviour)
+        return PolicyProposal(action=self.action, confidence=self.confidence, provider="fake", model_version="fake-1")
+
+    async def persisted_decision(self):
+        from sqlalchemy import select
+
+        from mental_math.game.models import PolicyDecision
+
+        async with self.app.state.session_factory() as db:
+            return await db.scalar(select(PolicyDecision).order_by(PolicyDecision.created_at.desc()).limit(1))
+
+
+@pytest.fixture
+def policy_fake(app):
+    from mental_math.policy.runtime import PolicyRuntime
+
+    fake = FakeTransport(app)
+    app.state.policy = PolicyRuntime(mode="shadow", transport=fake)
+    return fake
