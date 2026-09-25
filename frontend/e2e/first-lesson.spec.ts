@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { readAnswer } from './helpers';
 
 async function registerWithChild(page: Page) {
   await page.goto('/');
@@ -15,9 +16,7 @@ async function registerWithChild(page: Page) {
 }
 
 async function answerCurrent(page: Page, correct: boolean) {
-  const text = await page.locator('.expression').innerText();
-  const [a, b] = text.split('=')[0].split('+').map(part => Number(part.trim()));
-  const answer = a + b + (correct ? 0 : 1);
+  const answer = (await readAnswer(page)) + (correct ? 0 : 1);
   for (const digit of String(answer)) await page.getByRole('button', { name: digit, exact: true }).click();
   await page.getByRole('button', { name: 'Ответить' }).click();
 }

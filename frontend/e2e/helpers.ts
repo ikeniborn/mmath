@@ -15,6 +15,13 @@ export async function registerWithChild(page: Page, prefix: string) {
 
 export async function readOperands(page: Page): Promise<[number, number]> {
   const text = await page.locator('.expression').innerText();
-  const [a, b] = text.split('=')[0].split('+').map(part => Number(part.trim()));
+  const [a, b] = text.split('=')[0].split(/[+−×]/).map(part => Number(part.trim()));
   return [a, b];
+}
+
+export async function readAnswer(page: Page): Promise<number> {
+  const text = await page.locator('.expression').innerText();
+  const [left] = text.split('=');
+  const [a, b] = left.split(/[+−×]/).map(part => Number(part.trim()));
+  return left.includes('−') ? a - b : left.includes('×') ? a * b : a + b;
 }

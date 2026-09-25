@@ -8,11 +8,19 @@ class PolicyState:
 
     skill: str
     band: int
+    min_band: int
+    max_band: int
     mode: str
     attempts: int
     correct: int
+    mastery: float | None
+    correct_streak: int
+    error_streak: int
     session_answered: int
+    skill_run: int
     last_correct: bool
+    last_hinted: bool
+    other_skills: int
 
 
 @dataclass(frozen=True)

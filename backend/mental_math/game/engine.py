@@ -14,7 +14,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mental_math.accounts.security import now
-from mental_math.game.generator import generate_addition
+from mental_math.game.catalogue import CATALOGUE, generate, skills_for_topics
+from mental_math.game.constraints import band_bounds, next_skill, step_band
 from mental_math.game.hints import render_hint
 from mental_math.game.models import Attempt, LearningSession, PolicyDecision, Problem
 from mental_math.game.schemas import AttemptResult, Feedback, HintResult, PublicProblem, SessionSnapshot, SubmitAttempt
@@ -23,6 +24,8 @@ from mental_math.players.models import Player
 from mental_math.players.service import owned_player
 from mental_math.policy.service import decide, state_payload
 from mental_math.policy.types import PolicyState
+from mental_math.student.errors import classify
+from mental_math.student.models import PlayerSkill
 from mental_math.student.state import record_attempt
 
 TOTAL_PROBLEMS = 10
@@ -59,9 +62,19 @@ async def _owned_session(db: AsyncSession, account_id: UUID, session_id: UUID) -
     return player, session
 
 
-def _issue(session: LearningSession, ordinal: int) -> Problem:
-    generated = generate_addition(session.id, ordinal, session.settings["difficulty_band"])
-    return Problem(session_id=session.id, ordinal=ordinal, skill=generated.skill, band=generated.band, operation=generated.operation, operand_a=generated.operand_a, operand_b=generated.operand_b, correct_answer=generated.correct_answer)
+async def _automatic_bands(db: AsyncSession, player_id: UUID) -> dict[str, int]:
+    rows = (await db.scalars(select(PlayerSkill).where(PlayerSkill.player_id == player_id))).all()
+    return {row.skill: row.band for row in rows}
+
+
+async def _issue(db: AsyncSession, session: LearningSession, ordinal: int, *, current: str | None = None, action: str = "repeat") -> Problem:
+    code, band = next_skill(session.settings, await _automatic_bands(db, session.player_id), current, action)
+    session.skill_run = session.skill_run + 1 if code == current else 1
+    generated = generate(code, session.id, ordinal, band)
+    problem = Problem(session_id=session.id, ordinal=ordinal, skill=generated.skill, band=generated.band, operation=generated.operation, operand_a=generated.operand_a, operand_b=generated.operand_b, correct_answer=generated.correct_answer)
+    if action == "hint":
+        problem.hinted_at = now()
+    return problem
 
 
 async def start_session(db: AsyncSession, account_id: UUID, player_id: UUID) -> tuple[SessionSnapshot, bool]:
@@ -70,13 +83,13 @@ async def start_session(db: AsyncSession, account_id: UUID, player_id: UUID) -> 
     existing = await db.scalar(select(LearningSession).where(LearningSession.player_id == player.id, LearningSession.state == "active"))
     if existing is not None:
         return await snapshot(db, existing), False
-    if "addition" not in player.topics:
-        raise HTTPException(422, detail={"code": "skill_unavailable", "supported": ["addition"]})
+    if not skills_for_topics(list(player.topics)):
+        raise HTTPException(422, detail={"code": "skill_unavailable", "supported": sorted({skill.topic for skill in CATALOGUE.values()})})
     settings = {"mode": player.mode, "difficulty_band": player.difficulty_band, "topics": list(player.topics), "session_minutes": player.session_minutes}
-    session = LearningSession(player_id=player.id, settings=settings, state="active", phase="answer", version=1, answered_count=0, correct_count=0, active_ms=0)
+    session = LearningSession(player_id=player.id, settings=settings, state="active", phase="answer", version=1, answered_count=0, correct_count=0, active_ms=0, correct_streak=0, error_streak=0, skill_run=0)
     db.add(session)
     await db.flush()
-    first = _issue(session, 1)
+    first = await _issue(db, session, 1)
     db.add(first)
     await db.flush()
     session.current_problem_id = first.id
@@ -124,25 +137,37 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
     problem = await db.get(Problem, session.current_problem_id)
     correct = grade(problem, command.answer)
     response_ms = _validated_timing(session, command.response_ms)
-    attempt = Attempt(session_id=session.id, problem_id=problem.id, submission_id=command.submission_id, fingerprint=fingerprint(command), answer=command.answer, correct=correct, response_ms=response_ms, hint_used=problem.hinted_at is not None)
+    hinted = problem.hinted_at is not None
+    attempt = Attempt(session_id=session.id, problem_id=problem.id, submission_id=command.submission_id, fingerprint=fingerprint(command), answer=command.answer, correct=correct, response_ms=response_ms, hint_used=hinted, error_type=classify(problem, command.answer))
     db.add(attempt)
     await db.flush()
-    skill = await record_attempt(db, player.id, problem.skill, problem.band, correct)
+    skill = await record_attempt(db, player.id, problem.skill, problem.band, correct=correct, hinted=hinted, response_ms=response_ms)
     session.answered_count += 1
     session.correct_count += int(correct)
     session.active_ms += response_ms or 0
-    state = PolicyState(skill=problem.skill, band=problem.band, mode=session.settings["mode"], attempts=skill.attempts, correct=skill.correct, session_answered=session.answered_count, last_correct=correct)
+    session.correct_streak = session.correct_streak + 1 if correct and not hinted else 0
+    session.error_streak = 0 if correct else session.error_streak + 1
+    low, high = band_bounds(problem.skill)
+    eligible = len(skills_for_topics(session.settings["topics"]))
+    state = PolicyState(skill=problem.skill, band=problem.band, min_band=low, max_band=high, mode=session.settings["mode"], attempts=skill.attempts, correct=skill.correct, mastery=skill.mastery, correct_streak=session.correct_streak, error_streak=session.error_streak, session_answered=session.answered_count, skill_run=session.skill_run, last_correct=correct, last_hinted=hinted, other_skills=max(0, eligible - 1))
     decision = decide(state)
-    db.add(PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason))
+    if session.settings["mode"] == "automatic" and decision.applied_action in {"harder", "easier"}:
+        skill.band = step_band(problem.skill, skill.band, decision.applied_action)
+        session.correct_streak = 0
+        session.error_streak = 0
+    record = PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason)
+    db.add(record)
     session.feedback = Feedback(correct=correct, submitted_answer=command.answer, correct_answer=problem.correct_answer).model_dump()
     session.last_attempt_id = attempt.id
     session.phase = "feedback"
     session.pending_problem_id = None
     if session.answered_count < TOTAL_PROBLEMS and session.active_ms < time_limit_ms(session):
-        pending = _issue(session, problem.ordinal + 1)
+        await db.flush()
+        pending = await _issue(db, session, problem.ordinal + 1, current=problem.skill, action=decision.applied_action)
         db.add(pending)
         await db.flush()
         session.pending_problem_id = pending.id
+        record.next_problem_id = pending.id
     session.version += 1
     await db.flush()
     return AttemptResult(attempt_id=attempt.id, correct=correct, feedback=Feedback(**session.feedback), next_problem=None, session=await snapshot(db, session))

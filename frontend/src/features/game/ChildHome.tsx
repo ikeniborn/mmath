@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, type Player, type SessionSnapshot } from '../../api';
+import { THEME_NAME } from './labels';
 
 export default function ChildHome({ players }: { players: Player[] }) {
   const { id = '' } = useParams();
@@ -15,9 +16,10 @@ export default function ChildHome({ players }: { players: Player[] }) {
   if (!player) return <section><h2>Профиль не найден</h2><Link to="/">Назад</Link></section>;
   return <section className="home">
     <h2 ref={heading} tabIndex={-1}>Привет, {player.name}!</h2>
-    {active ? <p>Есть незаконченное занятие: задача {active.current_problem?.ordinal ?? active.answered_count} из {active.total_problems}.</p> : <p>Сегодня: сложение. {player.session_minutes} минут.</p>}
+    {active ? <p>Есть незаконченное занятие: задача {active.current_problem?.ordinal ?? active.answered_count} из {active.total_problems}.</p> : <p>{player.session_minutes} минут · {player.mode === 'fixed' ? `фиксированный уровень ${player.difficulty_band}` : 'сложность подбирается автоматически'} · {THEME_NAME[player.theme]}</p>}
     <div className="actions">
       <Link className="button big" to={`/children/${player.id}/play`}>{active ? 'Продолжить' : 'Начать'}</Link>
+      <Link className="button secondary" to={`/children/${player.id}/progress`}>Мои успехи</Link>
       <Link className="button secondary" to="/">Другой ребёнок</Link>
     </div>
   </section>;

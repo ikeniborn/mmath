@@ -8,6 +8,7 @@ import NumberPad from './NumberPad';
 import SessionSummary from './SessionSummary';
 import { clearPending, loadPending, savePending, type PendingSubmission } from './pendingSubmission';
 import { gameReducer, initialState } from './sessionReducer';
+import { SKILL_NAME, expression as formatExpression } from './labels';
 
 const OFFLINE = 'Нет связи с сервером. Нажмите «Повторить».';
 
@@ -105,7 +106,7 @@ export default function GamePage({ players }: { players: Player[] }) {
   if (snapshot.state === 'finished') return <SessionSummary player={player} snapshot={snapshot} headingRef={heading} />;
 
   const problem = snapshot.current_problem;
-  const expression = problem ? `${problem.operand_a} + ${problem.operand_b}` : '';
+  const expression = problem ? formatExpression(problem.operation, problem.operand_a, problem.operand_b) : '';
   const answering = snapshot.phase === 'answer';
   return <section className="game" onKeyDown={event => {
     if (!answering || status !== 'ready') return;
@@ -114,8 +115,9 @@ export default function GamePage({ players }: { players: Player[] }) {
     else if (event.key === 'Enter') void submit();
   }}>
     <h2 ref={heading} tabIndex={-1}>{answering ? `Задача ${problem?.ordinal} из ${snapshot.total_problems}` : (snapshot.feedback?.correct ? 'Верно!' : 'Пока не так')}</h2>
+    {problem && <p className="band">{SKILL_NAME[problem.skill] ?? problem.skill} · Уровень {problem.band}</p>}
     <p className="expression" aria-label={`Пример: ${expression}`}>{expression} = <span className="answer">{answering ? (entry || '?') : snapshot.feedback?.submitted_answer}</span></p>
-    {answering && snapshot.hint && <Hint hint={snapshot.hint} />}
+    {answering && snapshot.hint && <Hint hint={snapshot.hint} theme={player.theme} />}
     {answering ? <>
       <p role="status" aria-live="polite">{message}</p>
       <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />

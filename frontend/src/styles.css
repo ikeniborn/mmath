@@ -41,3 +41,9 @@ fieldset { border: 2px solid #d3dfdd; border-radius: 10px; }
 @media (max-width: 480px) { main { padding: 16px; } .card { padding: 18px; } }
 @media (prefers-reduced-motion: no-preference) { button, .button { transition: background .15s; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+.band { color: #47596a; font-weight: 650; margin: 0 0 8px; }
+.progress table { width: 100%; border-collapse: collapse; }
+.progress th, .progress td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #d3dfdd; }
+.progress caption { text-align: left; font-weight: 700; padding-bottom: 8px; }
+.sessions { list-style: none; padding: 0; display: grid; gap: 10px; }
+.sessions li { display: flex; flex-wrap: wrap; gap: 8px 16px; }

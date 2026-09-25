@@ -125,6 +125,23 @@ export interface paths {
         patch: operations["update_player_api_v1_players__player_id__patch"];
         trace?: never;
     };
+    "/api/v1/players/{player_id}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Progress */
+        get: operations["progress_api_v1_players__player_id__progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sessions": {
         parameters: {
             query?: never;
@@ -300,11 +317,16 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "counters" | "ten_frame" | "number_line";
+            kind: "counters" | "ten_frame" | "number_line" | "groups";
             /** Operand A */
             operand_a: number;
             /** Operand B */
             operand_b: number;
+            /**
+             * Operation
+             * @enum {string}
+             */
+            operation: "addition" | "subtraction" | "multiplication";
             /** Scale */
             scale: number;
         };
@@ -339,6 +361,12 @@ export interface components {
              * @enum {integer}
              */
             session_minutes: 5 | 10 | 15;
+            /**
+             * Theme
+             * @default flowers
+             * @enum {string}
+             */
+            theme: "flowers" | "dolls" | "cars" | "construction";
             /** Topics */
             topics: ("addition" | "subtraction" | "multiplication")[];
         };
@@ -356,6 +384,8 @@ export interface components {
             name?: string | null;
             /** Session Minutes */
             session_minutes?: (5 | 10 | 15) | null;
+            /** Theme */
+            theme?: ("flowers" | "dolls" | "cars" | "construction") | null;
             /** Topics */
             topics?: ("addition" | "subtraction" | "multiplication")[] | null;
         };
@@ -390,8 +420,23 @@ export interface components {
              * @enum {integer}
              */
             session_minutes: 5 | 10 | 15;
+            /**
+             * Theme
+             * @default flowers
+             * @enum {string}
+             */
+            theme: "flowers" | "dolls" | "cars" | "construction";
             /** Topics */
             topics: ("addition" | "subtraction" | "multiplication")[];
+        };
+        /** ProgressView */
+        ProgressView: {
+            /** Sessions */
+            sessions: components["schemas"]["SessionHistory"][];
+            /** Skills */
+            skills: components["schemas"]["SkillProgress"][];
+            /** Total Sessions */
+            total_sessions: number;
         };
         /** PublicProblem */
         PublicProblem: {
@@ -412,6 +457,36 @@ export interface components {
             ordinal: number;
             /** Skill */
             skill: string;
+        };
+        /** SessionHistory */
+        SessionHistory: {
+            /** Active Ms */
+            active_ms: number;
+            /** Answered Count */
+            answered_count: number;
+            /** Correct Count */
+            correct_count: number;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "active" | "finished";
         };
         /** SessionSettings */
         SessionSettings: {
@@ -474,6 +549,26 @@ export interface components {
             csrf_token: string;
             /** Email */
             email: string | null;
+        };
+        /** SkillProgress */
+        SkillProgress: {
+            /** Attempts */
+            attempts: number;
+            /** Band */
+            band: number;
+            /** Correct */
+            correct: number;
+            /** Formula Version */
+            formula_version: string | null;
+            /** Mastery */
+            mastery: number | null;
+            /** Skill */
+            skill: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** StartSession */
         StartSession: {
@@ -765,6 +860,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlayerView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    progress_api_v1_players__player_id__progress_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                player_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressView"];
                 };
             };
             /** @description Validation Error */

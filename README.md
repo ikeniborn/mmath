@@ -13,7 +13,9 @@ answer.
 | Family access and child profiles (accounts, CSRF, parent confirmation, operator recovery) | done |
 | First durable lesson (sessions, addition tasks, idempotent answers, resume, finish) | done |
 | Child navigation, visual hints, foreground time limits, exact resume across tabs and reloads | done |
-| Skill catalogue, automatic difficulty, public Docker release, PWA, GPU policy | planned |
+| Skill catalogue (addition/subtraction 0–4, doubles, near-doubles, make-ten, ×2, ×3), mastery, automatic and fixed difficulty, progress page | done |
+| Visual themes per child profile: flowers, dolls, cars, construction machinery (hint counters use the chosen icons) | done |
+| Public Docker release, PWA, GPU policy | planned |
 
 ## Stack
 
@@ -48,9 +50,19 @@ uv run --project backend python scripts/export_openapi.py
 frontend/node_modules/.bin/openapi-typescript frontend/src/api-schema.json -o frontend/src/api-types.ts
 ```
 
+## Difficulty rules
+
+Automatic mode (default) keeps one band per skill and child. Five correct unhinted answers in a row raise
+the current skill by one band; three errors in a row lower it, or expose a hint at the lowest band. Three
+correct answers on the same skill switch to the next enabled skill. Fixed mode locks the band and may only
+repeat, switch or recommend a hint; statistics and mastery still update. Mastery is
+`0.50 × recent accuracy + 0.30 × speed + 0.20 × consistency` over the last 20 attempts (formula
+`mastery-v1-10s`), unknown until the first attempt.
+
 ## API (v1)
 
-`/api/v1/auth/*`, `/api/v1/players`, and the game flow: `POST /sessions` (returns the
+`/api/v1/auth/*`, `/api/v1/players` (profiles carry `theme`), `GET /players/{id}/progress` (skills and
+paginated session history), and the game flow: `POST /sessions` (returns the
 child's active session or creates one), `GET /sessions/{id}`, `POST /sessions/{id}/attempts`
 (idempotent by `submission_id`, versioned by `expected_version`), `POST /sessions/{id}/advance`,
 `POST /sessions/{id}/hint` (records exposure once, replays safely), `POST /sessions/{id}/finish`, and

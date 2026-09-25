@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { readOperands, registerWithChild } from './helpers';
+import { readAnswer, readOperands, registerWithChild } from './helpers';
 
 test('answer phase, hint and feedback survive reload without a second grade', async ({ page }) => {
   await registerWithChild(page, 'resume');
@@ -15,8 +15,8 @@ test('answer phase, hint and feedback survive reload without a second grade', as
   await page.reload();
   await expect(page.getByRole('img', { name: /Подсказка/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Подсказка' })).toHaveCount(0);
-  const [a, b] = await readOperands(page);
-  for (const digit of String(a + b)) await page.getByRole('button', { name: digit, exact: true }).click();
+  const answer = await readAnswer(page);
+  for (const digit of String(answer)) await page.getByRole('button', { name: digit, exact: true }).click();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Верно!' })).toBeVisible();
   await page.reload();
@@ -38,8 +38,8 @@ test('a stale browser tab reconciles instead of grading twice', async ({ browser
   const second = await context.newPage();
   await second.goto(first.url());
   await expect(second.getByRole('heading', { name: 'Задача 1 из 10' })).toBeVisible();
-  const [a, b] = await readOperands(first);
-  for (const digit of String(a + b)) await first.getByRole('button', { name: digit, exact: true }).click();
+  const answer = await readAnswer(first);
+  for (const digit of String(answer)) await first.getByRole('button', { name: digit, exact: true }).click();
   await first.getByRole('button', { name: 'Ответить' }).click();
   await expect(first.getByRole('heading', { name: 'Верно!' })).toBeVisible();
   await second.getByRole('button', { name: '1' }).click();

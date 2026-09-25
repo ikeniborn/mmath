@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { readOperands, registerWithChild } from './helpers';
+import { readAnswer, readOperands, registerWithChild } from './helpers';
 
 for (const width of [320, 768, 1280]) {
   test(`journey at ${width}px: start, hint, keyboard answer, feedback, finish, home`, async ({ page }) => {
@@ -17,12 +17,12 @@ for (const width of [320, 768, 1280]) {
     await page.getByRole('button', { name: 'Подсказка' }).click();
     await expect(page.getByRole('img', { name: /Подсказка/ })).toBeVisible();
     expect(await overflow()).toBe(false);
-    const [a, b] = await readOperands(page);
+    const answer = await readAnswer(page);
     await page.getByRole('heading', { name: 'Задача 1 из 10' }).focus();
-    await page.keyboard.type(String(a + b + 1));
+    await page.keyboard.type(String(answer + 1));
     await page.keyboard.press('Backspace');
-    await page.keyboard.type(String(a + b).slice(-1));
-    await expect(page.locator('.answer')).toHaveText(String(a + b));
+    await page.keyboard.type(String(answer).slice(-1));
+    await expect(page.locator('.answer')).toHaveText(String(answer));
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'Верно!' })).toBeFocused();
     await expect(page.getByRole('status')).toContainText('Верно');

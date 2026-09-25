@@ -6,6 +6,7 @@ import PlayerPicker from './features/players/PlayerPicker';
 import PlayerSettings from './features/players/PlayerSettings';
 import ChildHome from './features/game/ChildHome';
 import GamePage from './features/game/GamePage';
+import ProgressPage from './features/progress/ProgressPage';
 import { clearPending } from './features/game/pendingSubmission';
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
     <Route path="/children/:id/settings" element={<PlayerSettings players={players} onChange={refresh} />} />
     <Route path="/children/:id" element={<ChildHome players={players} />} />
     <Route path="/children/:id/play" element={<GamePage players={players} />} />
+    <Route path="/children/:id/progress" element={<ProgressPage players={players} />} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes></main>;
 }

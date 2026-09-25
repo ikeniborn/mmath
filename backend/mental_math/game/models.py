@@ -31,6 +31,9 @@ class LearningSession(Base):
     answered_count: Mapped[int] = mapped_column(Integer, default=0)
     correct_count: Mapped[int] = mapped_column(Integer, default=0)
     active_ms: Mapped[int] = mapped_column(Integer, default=0)
+    correct_streak: Mapped[int] = mapped_column(Integer, default=0)
+    error_streak: Mapped[int] = mapped_column(Integer, default=0)
+    skill_run: Mapped[int] = mapped_column(Integer, default=0)
     active_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -66,6 +69,7 @@ class Attempt(Base):
     correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
     response_ms: Mapped[int | None] = mapped_column(Integer)
     hint_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    error_type: Mapped[str | None] = mapped_column(String(24))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -84,4 +88,5 @@ class PolicyDecision(Base):
     applied_action: Mapped[str] = mapped_column(String(20), nullable=False)
     latency_ms: Mapped[int] = mapped_column(Integer, nullable=False)
     fallback_reason: Mapped[str | None] = mapped_column(String(40))
+    next_problem_id: Mapped[UUID | None] = mapped_column(PGUUID(as_uuid=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

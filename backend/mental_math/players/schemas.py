@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
@@ -12,6 +13,7 @@ class PlayerInput(BaseModel):
     mode: Literal["automatic", "fixed"] = "automatic"
     difficulty_band: int | None = Field(default=None, ge=0, le=4)
     session_minutes: Literal[5, 10, 15] = 10
+    theme: Literal["flowers", "dolls", "cars", "construction"] = "flowers"
 
     @field_validator("name")
     @classmethod
@@ -41,6 +43,7 @@ class PlayerPatch(BaseModel):
     mode: Literal["automatic", "fixed"] | None = None
     difficulty_band: int | None = Field(default=None, ge=0, le=4)
     session_minutes: Literal[5, 10, 15] | None = None
+    theme: Literal["flowers", "dolls", "cars", "construction"] | None = None
 
     @model_validator(mode="after")
     def validate_patch(self):
@@ -58,3 +61,30 @@ class PlayerPatch(BaseModel):
 
 class PlayerView(PlayerInput):
     id: UUID
+
+
+class SkillProgress(BaseModel):
+    skill: str
+    band: int
+    attempts: int
+    correct: int
+    mastery: float | None
+    formula_version: str | None
+    updated_at: datetime
+
+
+class SessionHistory(BaseModel):
+    id: UUID
+    state: Literal["active", "finished"]
+    started_at: datetime
+    finished_at: datetime | None
+    answered_count: int
+    correct_count: int
+    active_ms: int
+    settings: dict
+
+
+class ProgressView(BaseModel):
+    skills: list[SkillProgress]
+    sessions: list[SessionHistory]
+    total_sessions: int

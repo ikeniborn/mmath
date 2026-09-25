@@ -16,6 +16,7 @@ class Player(Base):
         CheckConstraint("difficulty_band BETWEEN 0 AND 4", name="player_band_range"),
         CheckConstraint("mode IN ('automatic', 'fixed')", name="player_mode_allowed"),
         CheckConstraint("session_minutes IN (5, 10, 15)", name="player_minutes_allowed"),
+        CheckConstraint("theme IN ('flowers', 'dolls', 'cars', 'construction')", name="player_theme_allowed"),
     )
 
     id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid7)
@@ -27,3 +28,4 @@ class Player(Base):
     mode: Mapped[str] = mapped_column(String(10), default="automatic")
     difficulty_band: Mapped[int]
     session_minutes: Mapped[int] = mapped_column(default=10)
+    theme: Mapped[str] = mapped_column(String(20), default="flowers")

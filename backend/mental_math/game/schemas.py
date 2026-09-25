@@ -22,7 +22,8 @@ class HintRequest(BaseModel):
 
 
 class HintView(BaseModel):
-    kind: Literal["counters", "ten_frame", "number_line"]
+    kind: Literal["counters", "ten_frame", "number_line", "groups"]
+    operation: Literal["addition", "subtraction", "multiplication"]
     operand_a: int
     operand_b: int
     scale: int

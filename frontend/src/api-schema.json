@@ -158,7 +158,8 @@
             "enum": [
               "counters",
               "ten_frame",
-              "number_line"
+              "number_line",
+              "groups"
             ],
             "title": "Kind",
             "type": "string"
@@ -171,6 +172,15 @@
             "title": "Operand B",
             "type": "integer"
           },
+          "operation": {
+            "enum": [
+              "addition",
+              "subtraction",
+              "multiplication"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
           "scale": {
             "title": "Scale",
             "type": "integer"
@@ -178,6 +188,7 @@
         },
         "required": [
           "kind",
+          "operation",
           "operand_a",
           "operand_b",
           "scale"
@@ -256,6 +267,17 @@
             ],
             "title": "Session Minutes",
             "type": "integer"
+          },
+          "theme": {
+            "default": "flowers",
+            "enum": [
+              "flowers",
+              "dolls",
+              "cars",
+              "construction"
+            ],
+            "title": "Theme",
+            "type": "string"
           },
           "topics": {
             "items": {
@@ -368,6 +390,23 @@
             ],
             "title": "Session Minutes"
           },
+          "theme": {
+            "anyOf": [
+              {
+                "enum": [
+                  "flowers",
+                  "dolls",
+                  "cars",
+                  "construction"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          },
           "topics": {
             "anyOf": [
               {
@@ -454,6 +493,17 @@
             "title": "Session Minutes",
             "type": "integer"
           },
+          "theme": {
+            "default": "flowers",
+            "enum": [
+              "flowers",
+              "dolls",
+              "cars",
+              "construction"
+            ],
+            "title": "Theme",
+            "type": "string"
+          },
           "topics": {
             "items": {
               "enum": [
@@ -475,6 +525,35 @@
           "id"
         ],
         "title": "PlayerView",
+        "type": "object"
+      },
+      "ProgressView": {
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SessionHistory"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillProgress"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "total_sessions": {
+            "title": "Total Sessions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "skills",
+          "sessions",
+          "total_sessions"
+        ],
+        "title": "ProgressView",
         "type": "object"
       },
       "PublicProblem": {
@@ -519,6 +598,69 @@
           "operand_b"
         ],
         "title": "PublicProblem",
+        "type": "object"
+      },
+      "SessionHistory": {
+        "properties": {
+          "active_ms": {
+            "title": "Active Ms",
+            "type": "integer"
+          },
+          "answered_count": {
+            "title": "Answered Count",
+            "type": "integer"
+          },
+          "correct_count": {
+            "title": "Correct Count",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "settings": {
+            "additionalProperties": true,
+            "title": "Settings",
+            "type": "object"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "active",
+              "finished"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "started_at",
+          "finished_at",
+          "answered_count",
+          "correct_count",
+          "active_ms",
+          "settings"
+        ],
+        "title": "SessionHistory",
         "type": "object"
       },
       "SessionSettings": {
@@ -698,6 +840,64 @@
           "csrf_token"
         ],
         "title": "SessionView",
+        "type": "object"
+      },
+      "SkillProgress": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "band": {
+            "title": "Band",
+            "type": "integer"
+          },
+          "correct": {
+            "title": "Correct",
+            "type": "integer"
+          },
+          "formula_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formula Version"
+          },
+          "mastery": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mastery"
+          },
+          "skill": {
+            "title": "Skill",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill",
+          "band",
+          "attempts",
+          "correct",
+          "mastery",
+          "formula_version",
+          "updated_at"
+        ],
+        "title": "SkillProgress",
         "type": "object"
       },
       "StartSession": {
@@ -1112,6 +1312,72 @@
           }
         },
         "summary": "Update Player",
+        "tags": [
+          "players"
+        ]
+      }
+    },
+    "/api/v1/players/{player_id}/progress": {
+      "get": {
+        "operationId": "progress_api_v1_players__player_id__progress_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "player_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Player Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Progress",
         "tags": [
           "players"
         ]

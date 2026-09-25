@@ -32,3 +32,5 @@ export async function bootstrap(): Promise<Session> { return api<Session>('/auth
 export function clearCsrf() { csrf = ''; }
 export type HintView = components['schemas']['HintView'];
 export type HintResult = components['schemas']['HintResult'];
+export type ProgressView = components['schemas']['ProgressView'];
+export type Theme = Player['theme'];
