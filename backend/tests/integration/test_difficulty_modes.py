@@ -65,20 +65,29 @@ async def bands(family: Family) -> dict[str, int]:
 
 @pytest.mark.asyncio
 async def test_automatic_promotes_after_five_unhinted_correct_by_one_band(family, other_family):
+    """The promotion streak belongs to the skill and survives rotation and session boundaries."""
+    await configure(family, topics=["counting"])
     session = (await family.post("/sessions", {"player_id": family.player_id})).json()
-    assert session["current_problem"] == {**session["current_problem"], "skill": "addition", "band": 0}
-    # Three correct on the same skill switch to the next one; the fifth correct in a row promotes that skill.
+    assert session["current_problem"]["skill"] == "neighbour_one" and session["current_problem"]["band"] == 0
+    # Three correct on the same skill switch to the next one; the skill keeps its streak of three.
     session = await play(family, session, correct=True, count=3)
-    assert session["current_problem"]["skill"] == "doubles" and session["current_problem"]["band"] == 1
-    session = await play(family, session, correct=True, count=1)
-    assert session["current_problem"]["band"] == 1
-    session = await play(family, session, correct=True, count=1)
-    assert session["current_problem"]["skill"] == "doubles" and session["current_problem"]["band"] == 3
-    assert (await bands(family)) == {"addition": 0, "doubles": 3}
-    # The streak restarts after a promotion: four more correct do not promote again.
-    session = await play(family, session, correct=True, count=4)
+    assert session["current_problem"]["skill"] != "neighbour_one"
+    assert (await bands(family)) == {"neighbour_one": 0}
+    # Ten correct answers close the first session (3 neighbour_one, 3 neighbour_ten, 3 skip_counting, 1 odd_even); nothing is promoted yet.
+    session = await play(family, session, correct=True, count=7)
+    assert session["state"] == "finished"
     practised = await bands(family)
-    assert practised["doubles"] == 3 and all(practised[code] == INITIAL_BANDS[code] for code in practised if code != "doubles")
+    counting_initial = {"neighbour_one": 0, "neighbour_ten": 3, "skip_counting": 1, "odd_even": 0}
+    assert practised == counting_initial, practised
+    # The next session continues the rotation where the child stopped instead of restarting at the first skill.
+    session = (await family.post("/sessions", {"player_id": family.player_id})).json()
+    assert session["current_problem"]["skill"] == "odd_even"
+    # odd_even x3, missing_operator x3, then neighbour_one again: its fourth and fifth correct answers promote it to band 1.
+    session = await play(family, session, correct=True, count=6)
+    assert session["current_problem"]["skill"] == "neighbour_one" and session["current_problem"]["band"] == 0
+    session = await play(family, session, correct=True, count=2)
+    assert (await bands(family))["neighbour_one"] == 1
+    assert session["current_problem"]["skill"] == "neighbour_one" and session["current_problem"]["band"] == 1
     sibling = (await other_family.post("/sessions", {"player_id": other_family.player_id})).json()
     assert sibling["current_problem"]["band"] == 0 and (await bands(other_family)) == {}
 

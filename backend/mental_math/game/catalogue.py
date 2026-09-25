@@ -53,16 +53,16 @@ LIMIT = {3: 20, 4: 50}
 # --- addition -------------------------------------------------------------------------------------------------
 
 def addition(rng: random.Random, band: int) -> GeneratedProblem:
-    if band == 0:
-        return _add(rng.randint(0, 5), rng.randint(0, 5))
+    if band == 0:  # every part is something to count; zero facts are not issued
+        return _add(rng.randint(1, 5), rng.randint(1, 5))
     if band == 1:
-        a = rng.randint(0, 10)
-        return _add(a, rng.randint(0, 10 - a))
+        a = rng.randint(1, 9)
+        return _add(a, rng.randint(1, 10 - a))
     if band == 2:
         a = rng.randint(2, 9)
         return _add(a, rng.randint(11 - a, 9))
-    a = rng.randint(0, LIMIT[band])
-    return _add(a, rng.randint(0, LIMIT[band] - a))
+    a = rng.randint(1, LIMIT[band] - 1)
+    return _add(a, rng.randint(1, LIMIT[band] - a))
 
 
 def addition_ok(p: GeneratedProblem) -> bool:
@@ -88,6 +88,8 @@ def make_ten(rng: random.Random, band: int) -> GeneratedProblem:
 def _missing(problem: GeneratedProblem, rng: random.Random) -> GeneratedProblem:
     """Blank one operand: the answer becomes that operand, the result moves into the prompt."""
     blank = rng.choice(["a", "b"])
+    if (problem.operand_a if blank == "a" else problem.operand_b) == 0:  # never ask for a missing zero
+        blank = "b" if blank == "a" else "a"
     answer = problem.operand_a if blank == "a" else problem.operand_b
     return GeneratedProblem(skill="", band=0, operation=problem.operation, operand_a=problem.operand_a, operand_b=problem.operand_b, correct_answer=answer, kind="missing", prompt={"blank": blank, "result": problem.correct_answer})
 
@@ -138,17 +140,17 @@ def chain_add(rng: random.Random, band: int) -> GeneratedProblem:
 # --- subtraction ----------------------------------------------------------------------------------------------
 
 def subtraction(rng: random.Random, band: int) -> GeneratedProblem:
-    if band == 0:
-        a = rng.randint(0, 5)
-        return _sub(a, rng.randint(0, a))
+    if band == 0:  # something is always taken away; the result may be zero
+        a = rng.randint(1, 5)
+        return _sub(a, rng.randint(1, a))
     if band == 1:
-        a = rng.randint(0, 10)
-        return _sub(a, rng.randint(0, a))
+        a = rng.randint(2, 10)
+        return _sub(a, rng.randint(1, a))
     if band == 2:
         a = rng.randint(11, 18)
         return _sub(a, rng.randint(a - 9, 9))
-    a = rng.randint(0, LIMIT[band])
-    return _sub(a, rng.randint(0, a))
+    a = rng.randint(2, LIMIT[band])
+    return _sub(a, rng.randint(1, a))
 
 
 def subtraction_ok(p: GeneratedProblem) -> bool:

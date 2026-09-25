@@ -12,6 +12,12 @@ test('an older snapshot never replaces a newer one', () => {
   expect(state.snapshot?.version).toBe(4);
 });
 
+test('a new session replaces a finished one even with a lower version', () => {
+  const finished = { ...base, version: 12, state: 'finished' as const };
+  const fresh = { ...base, id: 's2', version: 1 };
+  expect(acceptSnapshot(finished, fresh)).toBe(fresh);
+});
+
 test('entry survives same-problem refresh and resets on a new problem', () => {
   let state = gameReducer(initialState, { type: 'snapshot', snapshot: base });
   state = gameReducer(state, { type: 'digit', digit: '5' });

@@ -14,7 +14,7 @@ answer.
 | First durable lesson (sessions, addition tasks, idempotent answers, resume, finish) | done |
 | Child navigation, visual hints, foreground time limits, exact resume across tabs and reloads | done |
 | Skill catalogue (addition/subtraction 0–4, doubles, near-doubles, make-ten, ×2, ×3), mastery, automatic and fixed difficulty, progress page | done |
-| Research-based task set: 47 skills in six topics (addition, subtraction, counting, multiplication, division, comparison) with seven answer shapes | done |
+| Research-based task set: 50 skills in six topics (addition, subtraction, counting, multiplication, division, comparison) with seven answer shapes | done |
 | Visual themes per child profile: flowers, dolls, cars, construction machinery (hint counters use the chosen icons) | done |
 | Russian and English interface: detected from the browser, switchable in the header, remembered per browser | done |
 | Deployment behind the external Traefik edge and the platform PostgreSQL: one-shot migrations, readiness, metrics, redacted JSON logs, isolated deployment check, backup drill | done |
@@ -76,7 +76,7 @@ frontend/node_modules/.bin/openapi-typescript frontend/src/api-schema.json -o fr
 
 ## Task catalogue
 
-Six parent-selectable topics, 47 skills, bands 0–4 (within 5–10, within 10, bridging ten within 20, within
+Six parent-selectable topics, 50 skills, bands 0–4 (within 5–10, within 10, bridging ten within 20, within
 20/50, within 100 or 1000 for scaled facts). Families follow the DfE ready-to-progress criteria (Years 1–4),
 the Russian grade 1–4 mental-arithmetic programme and soroban chain practice:
 
@@ -113,9 +113,13 @@ recorded rollout decision; rollback is `rules` mode plus an API restart, see
 
 ## Difficulty rules
 
-Automatic mode (default) keeps one band per skill and child. Five correct unhinted answers in a row raise
-the current skill by one band; three errors in a row lower it, or expose a hint at the lowest band. Three
-correct answers on the same skill switch to the next enabled skill. Fixed mode locks the band and may only
+Automatic mode (default) keeps one band per skill and child. Five correct unhinted answers in a row on a
+skill raise that skill by one supported band; the streak belongs to the skill and survives rotation and
+session boundaries, a hinted answer resets it. Three errors in a row on a skill lower it, or expose a hint
+at the lowest band. Three correct answers on the same skill switch to the next enabled skill, and a new
+session resumes the rotation where the child stopped, so every skill of a topic is reached. A round is ten
+tasks; the summary offers "Once more!" to start the next round. Children aged 4–5 see the objects of
+their theme drawn with every small addition or subtraction task (within 10) before any hint. Fixed mode locks the band and may only
 repeat, switch or recommend a hint; statistics and mastery still update. Mastery is
 `0.50 × recent accuracy + 0.30 × speed + 0.20 × consistency` over the last 20 attempts (formula
 `mastery-v1-10s`), unknown until the first attempt.

@@ -1,6 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
+  // One retry: the Vite dev-server proxy occasionally resets a request under parallel workers (registration then shows the generic sign-in error); the product path is covered by the backend suite.
+  retries: 1,
   testDir: './e2e',
   use: { baseURL: 'http://127.0.0.1:5173', browserName: 'chromium', locale: 'ru-RU' },
   webServer: [

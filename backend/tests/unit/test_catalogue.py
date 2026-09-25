@@ -105,3 +105,19 @@ def test_missing_operator_tasks_have_exactly_one_valid_operator():
             a, b, result = problem.operand_a, problem.operand_b, problem.prompt["result"]
             candidates = [a + b, a - b, a * b][:offered]
             assert candidates.count(result) == 1 and candidates.index(result) == problem.correct_answer, (a, b, result)
+
+
+def test_no_degenerate_zero_operands_and_no_missing_zero():
+    session = uuid4()
+    for code, skill in CATALOGUE.items():
+        for band in skill.bands:
+            for ordinal in range(1, 301):
+                p = generate(code, session, ordinal, band)
+                if p.kind == "missing":
+                    assert p.correct_answer != 0, (code, band, p)
+                if p.kind == "result" and p.operation in {"addition", "subtraction"}:
+                    assert not (p.operand_a == 0 and p.operand_b == 0), (code, band, p)
+                    if band >= 1:
+                        assert p.operand_a != 0 and p.operand_b != 0, (code, band, p)
+                    if p.operation == "subtraction":
+                        assert p.operand_b >= 1, (code, band, p)

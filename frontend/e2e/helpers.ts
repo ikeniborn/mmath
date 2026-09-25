@@ -1,13 +1,13 @@
 import { expect, type Page } from '@playwright/test';
 
-export async function registerWithChild(page: Page, prefix: string) {
+export async function registerWithChild(page: Page, prefix: string, age = '6') {
   await page.goto('/');
   await page.getByRole('button', { name: 'Нет аккаунта? Зарегистрироваться' }).click();
   await page.getByLabel('Электронная почта').fill(`${prefix}-${Date.now()}@example.com`);
   await page.getByLabel('Пароль', { exact: true }).fill('correct horse battery staple');
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
   await page.getByLabel('Имя').fill('Миша');
-  await page.getByLabel('Возраст').selectOption('6');
+  await page.getByLabel('Возраст').selectOption(age);
   await page.getByRole('button', { name: 'Создать профиль' }).click();
   await page.getByRole('link', { name: 'Играть' }).click();
   await expect(page.getByRole('heading', { name: 'Привет, Миша!' })).toBeVisible();

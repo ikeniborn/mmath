@@ -20,7 +20,8 @@ export const initialState: GameState = { snapshot: null, entry: '', status: 'loa
 
 /** Server snapshots are versioned; an older one never overwrites a newer one. */
 export function acceptSnapshot(current: SessionSnapshot | null, incoming: SessionSnapshot): SessionSnapshot {
-  return !current || incoming.version >= current.version ? incoming : current;
+  // A different session (a new round after the summary) always replaces the old one; within a session only newer versions win.
+  return !current || incoming.id !== current.id || incoming.version >= current.version ? incoming : current;
 }
 
 export function gameReducer(state: GameState, action: GameAction): GameState {

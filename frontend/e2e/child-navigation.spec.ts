@@ -19,9 +19,9 @@ for (const width of [320, 768, 1280]) {
     expect(await overflow()).toBe(false);
     const answer = await readAnswer(page);
     await page.getByRole('heading', { name: 'Задача 1 из 10' }).focus();
-    await page.keyboard.type(String(answer + 1));
+    await page.keyboard.type('7');
     await page.keyboard.press('Backspace');
-    await page.keyboard.type(String(answer).slice(-1));
+    await page.keyboard.type(String(answer));
     await expect(page.locator('.answer')).toHaveText(String(answer));
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'Верно!' })).toBeFocused();

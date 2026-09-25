@@ -93,7 +93,9 @@ async def start_session(db: AsyncSession, account_id: UUID, player_id: UUID) -> 
     session = LearningSession(player_id=player.id, settings=settings, state="active", phase="answer", version=1, answered_count=0, correct_count=0, active_ms=0, correct_streak=0, error_streak=0, skill_run=0)
     db.add(session)
     await db.flush()
-    first = await _issue(db, session, 1)
+    # Rotation continues where the child's previous session stopped instead of restarting at the first skill.
+    last_skill = await db.scalar(select(Problem.skill).join(LearningSession, LearningSession.id == Problem.session_id).where(LearningSession.player_id == player.id).order_by(Problem.id.desc()).limit(1))
+    first = await _issue(db, session, 1, current=last_skill, action="repeat")
     db.add(first)
     await db.flush()
     session.current_problem_id = first.id
@@ -153,10 +155,12 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
     session.error_streak = 0 if correct else session.error_streak + 1
     low, high = band_bounds(problem.skill)
     eligible = len(eligible_pairs(session.settings["topics"], session.settings["mode"], session.settings["difficulty_band"], await _automatic_bands(db, player.id)))
-    state = PolicyState(skill=problem.skill, band=problem.band, min_band=low, max_band=high, mode=session.settings["mode"], attempts=skill.attempts, correct=skill.correct, mastery=skill.mastery, correct_streak=session.correct_streak, error_streak=session.error_streak, session_answered=session.answered_count, skill_run=session.skill_run, last_correct=correct, last_hinted=hinted, other_skills=max(0, eligible - 1))
+    state = PolicyState(skill=problem.skill, band=problem.band, min_band=low, max_band=high, mode=session.settings["mode"], attempts=skill.attempts, correct=skill.correct, mastery=skill.mastery, correct_streak=skill.correct_streak, error_streak=skill.error_streak, session_answered=session.answered_count, skill_run=session.skill_run, last_correct=correct, last_hinted=hinted, other_skills=max(0, eligible - 1))
     decision = await resolve(state, policy)
     if session.settings["mode"] == "automatic" and decision.applied_action in {"harder", "easier"}:
         skill.band = step_band(problem.skill, skill.band, decision.applied_action)
+        skill.correct_streak = 0
+        skill.error_streak = 0
         session.correct_streak = 0
         session.error_streak = 0
     record = PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, policy_mode=decision.policy_mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, confidence=decision.proposal.confidence, rule_action=decision.rule_action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason)

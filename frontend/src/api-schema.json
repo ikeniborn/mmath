@@ -212,7 +212,7 @@
         "properties": {
           "age": {
             "maximum": 10.0,
-            "minimum": 5.0,
+            "minimum": 4.0,
             "title": "Age",
             "type": "integer"
           },
@@ -307,7 +307,7 @@
             "anyOf": [
               {
                 "maximum": 10.0,
-                "minimum": 5.0,
+                "minimum": 4.0,
                 "type": "integer"
               },
               {
@@ -438,7 +438,7 @@
         "properties": {
           "age": {
             "maximum": 10.0,
-            "minimum": 5.0,
+            "minimum": 4.0,
             "title": "Age",
             "type": "integer"
           },

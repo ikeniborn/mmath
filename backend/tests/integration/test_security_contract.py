@@ -21,7 +21,7 @@ async def test_origin_csrf_and_input_limits():
         assert "secure" not in registered.headers["set-cookie"].lower()
         assert registered.headers["cache-control"] == "no-store"
         csrf = registered.json()["csrf_token"]
-        assert (await client.post("/api/v1/players", json={"name": "A", "age": 4, "topics": ["addition"]}, headers={"X-CSRF-Token": csrf})).status_code == 422
+        assert (await client.post("/api/v1/players", json={"name": "A", "age": 3, "topics": ["addition"]}, headers={"X-CSRF-Token": csrf})).status_code == 422
         assert (await client.post("/api/v1/players", json={"name": "A", "age": 7, "topics": []}, headers={"X-CSRF-Token": csrf})).status_code == 422
 
 

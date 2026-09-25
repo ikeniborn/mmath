@@ -6,6 +6,7 @@ import Feedback from './Feedback';
 import Hint from './Hint';
 import NumberPad from './NumberPad';
 import SessionSummary from './SessionSummary';
+import TaskPicture from './TaskPicture';
 import { clearPending, loadPending, savePending, type PendingSubmission } from './pendingSubmission';
 import { gameReducer, initialState } from './sessionReducer';
 import ChoicePad from './ChoicePad';
@@ -110,7 +111,7 @@ export default function GamePage({ players }: { players: Player[] }) {
   }
 
   if (!snapshot) return <section className="game"><h2 ref={heading} tabIndex={-1}>{status === 'offline' ? t('game.offline') : t('game.preparing')}</h2>{status === 'offline' && <><p role="alert">{message}</p><button type="button" onClick={retry}>{t('app.retry')}</button></>}</section>;
-  if (snapshot.state === 'finished') return <SessionSummary player={player} snapshot={snapshot} headingRef={heading} />;
+  if (snapshot.state === 'finished') return <SessionSummary player={player} snapshot={snapshot} headingRef={heading} onAgain={() => void load()} />;
 
   const problem = snapshot.current_problem;
   const parts = problem ? promptParts(problem, t) : [];
@@ -126,6 +127,7 @@ export default function GamePage({ players }: { players: Player[] }) {
   }}>
     <h2 ref={heading} tabIndex={-1}>{answering ? t('game.task', { n: problem?.ordinal ?? 0, total: snapshot.total_problems }) : (snapshot.feedback?.correct ? t('game.correct') : t('game.wrong'))}</h2>
     {problem && <p className="band">{t('game.level', { skill: name('skill', problem.skill), band: problem.band })}</p>}
+    {problem && <TaskPicture problem={problem} age={player.age} theme={player.theme} />}
     <p className="expression" aria-label={t('game.expression', { expression })}>{parts.map((part, index) => part === null ? <span key={index} className="answer">{shown}</span> : <span key={index}>{part}</span>)}</p>
     {answering && snapshot.hint && <Hint hint={snapshot.hint} theme={player.theme} />}
     {answering ? <>
