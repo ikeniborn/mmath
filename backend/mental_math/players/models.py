@@ -12,7 +12,7 @@ from mental_math.db import Base
 class Player(Base):
     __tablename__ = "players"
     __table_args__ = (
-        CheckConstraint("age BETWEEN 5 AND 10", name="player_age_range"),
+        CheckConstraint("age BETWEEN 4 AND 10", name="player_age_range"),
         CheckConstraint("difficulty_band BETWEEN 0 AND 4", name="player_band_range"),
         CheckConstraint("mode IN ('automatic', 'fixed')", name="player_mode_allowed"),
         CheckConstraint("session_minutes IN (5, 10, 15)", name="player_minutes_allowed"),
