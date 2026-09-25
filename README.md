@@ -20,7 +20,8 @@ answer.
 | Deployment behind the external Traefik edge and the platform PostgreSQL: one-shot migrations, readiness, metrics, redacted JSON logs, isolated deployment check, backup drill | done |
 | Connected mobile PWA: manifest, icons, standalone install, service worker caching only the public shell, connection-required page, safe-screen updates | done |
 | Framework System One shadow policy: bounded 350 ms proposals recorded beside the rule decision, typed failure taxonomy, no retry on 429 | done (live smoke blocked until Framework publishes the route) |
-| Learning evidence export and offline evaluation, guarded active policy | planned |
+| Learning evidence: pseudonymous JSONL export with a recursive field allowlist, outcome windows that mark incomplete evidence, deterministic offline evaluation with the LLD candidate reward | done |
+| Guarded active policy | planned (needs verified confidence and an offline calibration checkpoint) |
 
 ## Stack
 
@@ -97,6 +98,7 @@ Framework System One route for a proposal inside the answer transaction under on
 records proposal or typed failure (`busy`, `timeout`, `http_4xx`, `http_5xx`, `malformed`, `oversized`,
 `network`) in the audit row and still applies the rule action. The state sent to inference is aggregated and
 identity-free; the bearer token comes from a mounted file. See `docs/runbooks/framework-integration.md`.
+Evidence export and offline evaluation: `docs/runbooks/policy-evaluation.md`.
 
 ## Difficulty rules
 

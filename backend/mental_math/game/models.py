@@ -3,7 +3,7 @@ from uuid import UUID
 
 from uuid6 import uuid7
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, JSON, String, UniqueConstraint, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, JSON, String, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -88,6 +88,7 @@ class PolicyDecision(Base):
     model_version: Mapped[str | None] = mapped_column(String(40))
     proposed_action: Mapped[str | None] = mapped_column(String(20))
     rule_action: Mapped[str | None] = mapped_column(String(20))
+    confidence: Mapped[float | None] = mapped_column(Float)
     policy_mode: Mapped[str] = mapped_column(String(10), default="rules")
     applied_action: Mapped[str] = mapped_column(String(20), nullable=False)
     latency_ms: Mapped[int] = mapped_column(Integer, nullable=False)

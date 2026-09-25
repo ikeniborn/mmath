@@ -157,7 +157,7 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
         skill.band = step_band(problem.skill, skill.band, decision.applied_action)
         session.correct_streak = 0
         session.error_streak = 0
-    record = PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, policy_mode=decision.policy_mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, rule_action=decision.rule_action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason)
+    record = PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, policy_mode=decision.policy_mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, confidence=decision.proposal.confidence, rule_action=decision.rule_action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason)
     db.add(record)
     metrics.observe_attempt(correct=correct, applied_action=decision.applied_action, fallback_reason=decision.fallback_reason, latency_ms=decision.latency_ms, mode=decision.mode)
     session.feedback = Feedback(correct=correct, submitted_answer=command.answer, correct_answer=problem.correct_answer).model_dump()
