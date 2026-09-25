@@ -9,7 +9,7 @@ SWITCH_RUN = 3
 
 
 def allowed_actions(state: PolicyState) -> tuple[str, ...]:
-    actions = ["repeat", "hint"]
+    actions = ["repeat", "hint", "no_hint"]
     if state.other_skills > 0:
         actions.append("switch")
     if state.mode == "automatic":

@@ -1,6 +1,6 @@
 # Framework System One integration (policy modes)
 
-mmath decides the next task with deterministic rules. The Framework GPU platform can additionally propose an action through Laya System One. Deployment policy modes: `rules` (default, no network call), `shadow` (the proposal is recorded, the rule action is applied), `active` (not available: it requires verified confidence semantics and an offline calibration checkpoint first).
+mmath decides the next task with deterministic rules. The Framework GPU platform can additionally propose an action through Laya System One. Deployment policy modes: `rules` (default, no network call), `shadow` (the proposal is recorded, the rule action is applied), `active` (the gated proposal is applied; opt-in only through `active-policy-rollout.md`, which requires verified confidence semantics and an offline calibration checkpoint first).
 
 ## Contract in use
 
@@ -9,7 +9,7 @@ Source: framework wiki `runbook/laya-systemone-model-usage` and `specification/l
 - Route: `POST {MMATH_FRAMEWORK_URL}/v1/systemone` through Framework GPU Tools; discovery `GET /v1/systemone/models`. Never the Laya or Runtime Manager loopback ports.
 - Authentication at the Internet edge: bearer `frameworkEdgeToken`, read from the file at `MMATH_FRAMEWORK_TOKEN_FILE` (mounted by the shadow overlay from `MMATH_FRAMEWORK_TOKEN_PATH`, a host file with mode `600`). Reviewed direct-LAN access may omit the token. The token never appears in logs, metrics, audit rows or repository files.
 - Request: `{"model": alias, "state": {...}, "questions": {"next_action": {"type": "choice", "criteria": [allowed actions]}}}`. Aliases `laya-auto`, `laya-english`, `laya-multilingual`. The state is the aggregated, identity-free policy state (skill, band, mode, counts, streaks); no account, child or session identifiers.
-- Response: `{"answers": {"next_action": <string or {"choice", "probabilities"}>}, "usage": {...}, "routing": {"model": alias}}`. A probability for the chosen action is stored as confidence when present; otherwise confidence is null. Confidence semantics are **not verified**, which is why only shadow mode exists.
+- Response: `{"answers": {"next_action": <string or {"choice", "probabilities"}>}, "usage": {...}, "routing": {"model": alias}}`. A probability for the chosen action is stored as confidence when present; otherwise confidence is null. Confidence semantics are **not verified**; active mode therefore stays behind the rollout checkpoint in `active-policy-rollout.md`.
 - Limits and failures: 2 MiB request/response, 50,000-character state, 64 questions. Concurrent inference answers `429 systemone_busy` (`Retry-After: 1`); mmath records `busy` and never retries or queues. 400/413/422 → `http_4xx`, 502/503/504 → `http_5xx`, unparsable or missing answer → `malformed`, body over the limit → `oversized`, connection problems → `network`, total deadline → `timeout`.
 
 ## Guarantees

@@ -31,6 +31,6 @@ cd backend
 uv run --project . python -m mental_math.policy.evaluation /path/to/evidence.jsonl
 ```
 
-The JSON report contains: record, proposal and failure counts; agreement with rules; illegal proposal rate; fallback rate; latency p50/p95/max; calibration bins (agreement with the applied rule action per confidence bin, not a probability of learning benefit); the LLD candidate reward `0.40 × accuracy gain + 0.25 × speed gain + 0.20 × completion + 0.15 × retention` averaged over complete windows only, with the number of incomplete windows shown.
+The JSON report contains: record, proposal and failure counts; agreement with rules; illegal proposal rate; fallback rate; latency p50/p95/max with the sample count over answered calls and the number of deadline timeouts counted separately; calibration bins (agreement with the applied rule action per confidence bin, not a probability of learning benefit); the LLD candidate reward `0.40 × accuracy gain + 0.25 × speed gain + 0.20 × completion + 0.15 × retention` averaged over complete windows only, with the number of incomplete windows shown.
 
 The report states explicitly: shadow outcomes follow the applied rule action, so nothing here establishes a causal benefit of the unchosen model action. Fine-tuning, Framework model residency and any A/B cohort experiment require separate authorization and a reviewed experiment decision.

@@ -13,13 +13,30 @@ from mental_math.policy.framework import FAILURE_TAXONOMY, TransportFailure
 from mental_math.policy.types import PolicyDecisionRecord, PolicyProposal, PolicyState, PolicyTransport
 
 TOTAL_DEADLINE_SECONDS = 0.350
-MODES = ("rules", "shadow")
+MODES = ("rules", "shadow", "active")
+MIN_THRESHOLD, MAX_THRESHOLD = 0.5, 1.0
 
 
 @dataclass(frozen=True)
 class PolicyRuntime:
     mode: str = "rules"
     transport: PolicyTransport | None = None
+    confidence_threshold: float = 0.8
+
+
+def gate_proposal(proposal: PolicyProposal, allowed: tuple[str, ...], *, threshold: float) -> tuple[str | None, str | None]:
+    """Active-mode gate: (applied action, None) or (None, reason). Post-validation runs even if the criteria were prefiltered."""
+    if not MIN_THRESHOLD <= threshold <= MAX_THRESHOLD:
+        raise ValueError(f"confidence threshold must be between {MIN_THRESHOLD} and {MAX_THRESHOLD}")
+    if proposal.failure_code:
+        return None, proposal.failure_code
+    if proposal.action not in allowed:
+        return None, "illegal_action"
+    if proposal.confidence is None:
+        return None, "confidence_missing"
+    if proposal.confidence < threshold:
+        return None, "confidence_low"
+    return proposal.action, None
 
 
 async def bounded_predict(transport: PolicyTransport, state: PolicyState, allowed: tuple[str, ...]) -> PolicyProposal:
@@ -45,5 +62,8 @@ async def resolve(state: PolicyState, runtime: PolicyRuntime | None) -> PolicyDe
     if runtime is None or runtime.mode == "rules" or runtime.transport is None:
         return PolicyDecisionRecord(allowed_actions=allowed, mode=state.mode, proposal=rule, applied_action=rule.action, latency_ms=int((time.perf_counter() - started) * 1000), fallback_reason=None, policy_mode="rules", rule_action=rule.action)
     proposal = await bounded_predict(runtime.transport, state, allowed)
-    reason = proposal.failure_code or "shadow"
-    return PolicyDecisionRecord(allowed_actions=allowed, mode=state.mode, proposal=proposal, applied_action=rule.action, latency_ms=int((time.perf_counter() - started) * 1000), fallback_reason=reason, policy_mode="shadow", rule_action=rule.action)
+    if runtime.mode == "shadow":
+        reason = proposal.failure_code or "shadow"
+        return PolicyDecisionRecord(allowed_actions=allowed, mode=state.mode, proposal=proposal, applied_action=rule.action, latency_ms=int((time.perf_counter() - started) * 1000), fallback_reason=reason, policy_mode="shadow", rule_action=rule.action)
+    applied, reason = gate_proposal(proposal, allowed, threshold=runtime.confidence_threshold)
+    return PolicyDecisionRecord(allowed_actions=allowed, mode=state.mode, proposal=proposal, applied_action=applied or rule.action, latency_ms=int((time.perf_counter() - started) * 1000), fallback_reason=reason, policy_mode="active", rule_action=rule.action)

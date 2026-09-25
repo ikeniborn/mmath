@@ -36,7 +36,9 @@ def evaluate(records: list[dict]) -> dict:
     failures = [record for record in records if record["decision"].get("failure_code")]
     agreements = sum(1 for record in proposals if record["decision"]["proposed_action"] == record["decision"].get("rule_action"))
     illegal = sum(1 for record in proposals if record["decision"]["proposed_action"] not in record["allowed_actions"])
-    latencies = [record["decision"]["latency_ms"] for record in records if isinstance(record["decision"].get("latency_ms"), int)]
+    # Timeouts hit the deadline by construction; they are counted separately so the quantiles describe answered calls.
+    timeouts = sum(1 for record in records if record["decision"].get("failure_code") == "timeout")
+    latencies = [record["decision"]["latency_ms"] for record in records if isinstance(record["decision"].get("latency_ms"), int) and record["decision"].get("failure_code") != "timeout"]
     rewards = [reward for reward in (candidate_reward(record["outcome"]) for record in records) if reward is not None]
     bins = []
     for low, high in BINS:
@@ -50,7 +52,7 @@ def evaluate(records: list[dict]) -> dict:
         "agreement_with_rules": (agreements / len(proposals)) if proposals else None,
         "illegal_proposal_rate": (illegal / len(proposals)) if proposals else None,
         "fallback_rate": (len(failures) / len(records)) if records else None,
-        "latency_ms": {"p50": _quantile(latencies, 0.5), "p95": _quantile(latencies, 0.95), "max": max(latencies) if latencies else None},
+        "latency_ms": {"p50": _quantile(latencies, 0.5), "p95": _quantile(latencies, 0.95), "max": max(latencies) if latencies else None, "samples": len(latencies), "timeouts": timeouts},
         "calibration": {"note": "agreement with the applied rule action per confidence bin; not a probability of learning benefit", "bins": bins},
         "reward": {"complete_windows": len(rewards), "incomplete_windows": len(records) - len(rewards), "mean": (sum(rewards) / len(rewards)) if rewards else None},
         "disclaimer": DISCLAIMER,

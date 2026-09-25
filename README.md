@@ -98,7 +98,14 @@ Framework System One route for a proposal inside the answer transaction under on
 records proposal or typed failure (`busy`, `timeout`, `http_4xx`, `http_5xx`, `malformed`, `oversized`,
 `network`) in the audit row and still applies the rule action. The state sent to inference is aggregated and
 identity-free; the bearer token comes from a mounted file. See `docs/runbooks/framework-integration.md`.
-Evidence export and offline evaluation: `docs/runbooks/policy-evaluation.md`.
+`active` applies the proposal only when it is inside the rule-computed legal action set and its confidence
+reaches `MMATH_ACTIVE_CONFIDENCE_THRESHOLD` (0.5–1.0; 0.8 is the proposed value, there is no default);
+every other case applies the rule action and stores the reason (`illegal_action`, `confidence_low`,
+`confidence_missing`, or the transport failure). Fixed mode, error streaks and band limits bind the model
+exactly as they bind the rules. Activation also requires `MMATH_ACTIVE_ROLLOUT_AUTHORIZATION` naming the
+recorded rollout decision; rollback is `rules` mode plus an API restart, see
+`docs/runbooks/active-policy-rollout.md`. Evidence export and offline evaluation:
+`docs/runbooks/policy-evaluation.md`.
 
 ## Difficulty rules
 

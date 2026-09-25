@@ -31,7 +31,7 @@ def test_metrics_are_deterministic_and_exclude_incomplete_evidence():
     assert first["agreement_with_rules"] == pytest.approx(2 / 4)
     assert first["illegal_proposal_rate"] == pytest.approx(1 / 4)
     assert first["fallback_rate"] == pytest.approx(1 / 5)
-    assert first["latency_ms"]["p50"] == 12 and first["latency_ms"]["max"] == 360
+    assert first["latency_ms"] == {"p50": 12, "p95": 12, "max": 12, "samples": 4, "timeouts": 1}  # the deadline hit is counted, not averaged in
     assert first["reward"]["complete_windows"] == 4 and first["reward"]["incomplete_windows"] == 1
     assert first["reward"]["mean"] == pytest.approx(candidate_reward(records[0]["outcome"]))
     assert "cannot establish causal benefit" in first["disclaimer"]

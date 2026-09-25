@@ -10,7 +10,7 @@ def state(**overrides) -> PolicyState:
 
 def test_fixed_mode_never_offers_or_applies_band_changes():
     fixed = state(mode="fixed", correct_streak=9, error_streak=0)
-    assert set(allowed_actions(fixed)) == {"repeat", "switch", "hint"}
+    assert set(allowed_actions(fixed)) == {"repeat", "switch", "hint", "no_hint"}
     assert decide(fixed).applied_action in {"repeat", "switch"}
     forced = decide(fixed, proposal=PolicyProposal(action="harder", confidence=1.0, provider="test", model_version="t"))
     assert forced.applied_action in {"repeat", "switch"} and forced.fallback_reason == "illegal_action"
