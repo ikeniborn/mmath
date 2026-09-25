@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mental-math-web-platform — отчёт о реализации</title>
+<style>
+:root{--bg:#f6f7fb;--surface:#ffffff;--fg:#2b2b3a;--muted:#6b6b80;--accent:#5c6bc0;--accent-2:#3949ab;--border:#d6d8e6;--line:#9aa0b4;--zebra:#eef0f8;--ok:#43a047;--ok-2:#2e7d32;--warn:#fb8c00;--warn-2:#ef6c00;--danger:#e53935;--danger-2:#c62828;--shadow:rgba(40,40,80,.18);}
+body:has(#theme-toggle:checked){--bg:#181825;--surface:#262637;--fg:#cdd6f4;--muted:#a6adc8;--accent:#89b4fa;--accent-2:#5e95f0;--border:#3a3b52;--line:#6c7086;--zebra:#21222f;--ok:#a6e3a1;--ok-2:#74c46e;--warn:#f9e2af;--warn-2:#f5c95b;--danger:#f38ba8;--danger-2:#e8638a;--shadow:rgba(0,0,0,.45);}
+body{margin:0 auto;padding:1.5rem 2rem 4rem;max-width:1120px;font:16px/1.55 system-ui,sans-serif;background:radial-gradient(1200px 500px at 100% -10%,color-mix(in srgb,var(--accent) 10%,transparent),transparent),var(--bg);color:var(--fg);transition:background .3s,color .3s;}
+.theme-btn{position:sticky;top:.5rem;float:right;cursor:pointer;user-select:none;padding:.25rem .6rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);}
+h1,h2{color:var(--accent);} h2{margin-top:2.2rem;border-bottom:1px solid var(--border);padding-bottom:.3rem;}
+.lead{color:var(--muted);font-size:1.05rem;}
+.rpt-table{border-collapse:separate;border-spacing:0;width:100%;background:var(--surface);margin:1rem 0;font-size:.9rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 2px 12px var(--shadow);}
+.rpt-table th,.rpt-table td{border-bottom:1px solid var(--border);padding:.45rem .7rem;text-align:left;vertical-align:top;}
+.rpt-table tbody tr:last-child td{border-bottom:none;}
+.rpt-table thead th{background:var(--accent);color:var(--bg);position:sticky;top:0;}
+.rpt-table tbody tr:nth-child(even){background:var(--zebra);}
+.rpt-table tbody tr:hover{background:color-mix(in srgb,var(--accent) 14%,var(--surface));}
+.rpt-table td code{white-space:nowrap;font-size:.85em;}
+.badge{display:inline-block;padding:.05rem .5rem;border-radius:999px;font-size:.78rem;font-weight:600;color:var(--bg);}
+.badge.ok{background:var(--ok-2);} .badge.warn{background:var(--warn-2);} .badge.info{background:var(--accent-2);}
+.note{border-left:4px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface));padding:.6rem .9rem;border-radius:6px;margin:1rem 0;}
+.note.warn{border-left-color:var(--warn-2);background:color-mix(in srgb,var(--warn) 12%,var(--surface));}
+.kpi{display:flex;gap:.8rem;flex-wrap:wrap;margin:1rem 0;}
+.kpi div{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.6rem 1rem;box-shadow:0 1px 6px var(--shadow);min-width:9rem;}
+.kpi b{display:block;font-size:1.4rem;color:var(--accent);}
+details{margin:.6rem 0;} summary{cursor:pointer;color:var(--accent);font-weight:600;}
+.rpt-flow{display:flex;align-items:center;gap:0;margin:1rem 0;flex-wrap:wrap;}
+.rpt-flow .node{background:var(--surface);color:var(--fg);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;box-shadow:0 1px 6px var(--shadow);}
+.rpt-flow .arrow{flex:0 0 2.2rem;height:2px;background:var(--line);position:relative;}
+.rpt-flow .arrow::after{content:"";position:absolute;right:0;top:-4px;border:5px solid transparent;border-left-color:var(--line);}
+.rpt-c4 .boundary{border:1.6px dashed var(--accent);border-radius:12px;padding:1.8rem 1rem 1rem;margin:.7rem 0;position:relative;display:flex;flex-wrap:wrap;gap:.6rem;background:color-mix(in srgb,var(--accent) 5%,transparent);}
+.rpt-c4 .boundary::before{content:attr(data-label);position:absolute;top:-.7rem;left:.9rem;background:var(--bg);padding:0 .45rem;font-size:.8rem;color:var(--accent);font-weight:600;}
+.rpt-c4 .comp{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.55rem .85rem;min-width:6rem;font-size:.85rem;box-shadow:0 1px 6px var(--shadow);border-left:4px solid var(--accent);}
+.rpt-c4 .comp b{color:var(--accent);} .rpt-c4 .sub{color:var(--muted);font-size:.8rem;}
+.rpt-c4 .comp.ext{border-left-color:var(--warn-2);}
+</style></head><body>
+<input type="checkbox" id="theme-toggle" hidden><label for="theme-toggle" class="theme-btn" title="Тема">🌙 / ☀️</label>
+<main class="report">
+<h1>mental-math-web-platform — отчёт о реализации</h1>
+<p class="lead">Сверка результата с одобренным планом (стадия <code>/check-chain result</code>, маршрут full). Вердикт: <span class="badge ok">OK</span> — все девять задач плана выполнены, ни один шаг не отсутствует.</p>
+
+<h2>1. Резюме внедрения</h2>
+<table class="rpt-table"><tbody>
+<tr><td>Топик</td><td><code>mental-math-web-platform</code></td></tr>
+<tr><td>Intent</td><td><code>docs/superpowers/intents/2026-09-24-mental-math-web-platform-intent.md</code> · approved · 1e77a63f4c624d1c</td></tr>
+<tr><td>Spec</td><td><code>docs/superpowers/specs/2026-09-24-mental-math-web-platform-design.md</code> · approved · c569f53d52d026cd</td></tr>
+<tr><td>Plan</td><td><code>docs/superpowers/plans/2026-09-24-mental-math-web-platform.md</code> · approved · 203196df748c1163</td></tr>
+<tr><td>База диффа</td><td><code>master</code> (b363316) … <code>bd6c40c</code> на ветке <code>dev-mental-math-web-platform</code></td></tr>
+<tr><td>Дата сверки</td><td>2026-09-25</td></tr>
+</tbody></table>
+<div class="kpi"><div><b>183</b>файлов</div><div><b>+16693</b>строк добавлено</div><div><b>−1</b>строк удалено</div><div><b>9/9</b>задач DONE</div><div><b>8/8</b>outcomes intent</div><div><b>18</b>GWT-сценариев strict</div></div>
+
+<h2>2. Выполненные изменения</h2>
+<p>Таблица по файлам из <code>git diff --numstat master...HEAD</code> (без lock-файла и сгенерированного контракта — они перечислены, но описание общее).</p>
+<details open><summary>Все файлы (183)</summary>
+<table class="rpt-table"><thead><tr><th>Файл</th><th>Вид</th><th>± строк</th><th>Что делает изменение</th></tr></thead><tbody>
+<tr><td><code>.dockerignore</code></td><td>добавлен</td><td>+7 / −0</td><td>контекст сборки</td></tr>
+<tr><td><code>.gitignore</code></td><td>добавлен</td><td>+8 / −0</td><td>игнорируемые файлы</td></tr>
+<tr><td><code>.iwiki.toml</code></td><td>добавлен</td><td>+44 / −0</td><td>привязка iwiki (закоммичена пользователем, 85003a3)</td></tr>
+<tr><td><code>.iwikiignore</code></td><td>добавлен</td><td>+7 / −0</td><td>привязка iwiki (закоммичена пользователем, 85003a3)</td></tr>
+<tr><td><code>README.md</code></td><td>добавлен</td><td>+131 / −1</td><td>публичная документация</td></tr>
+<tr><td><code>backend/Dockerfile</code></td><td>добавлен</td><td>+8 / −0</td><td>конфигурация backend-пакета и образа</td></tr>
+<tr><td><code>backend/alembic.ini</code></td><td>добавлен</td><td>+4 / −0</td><td>конфигурация backend-пакета и образа</td></tr>
+<tr><td><code>backend/mental_math/__init__.py</code></td><td>добавлен</td><td>+0 / −0</td><td>конфигурация backend-пакета и образа</td></tr>
+<tr><td><code>backend/mental_math/accounts/__init__.py</code></td><td>добавлен</td><td>+0 / −0</td><td>аккаунты родителей: регистрация, сессии, CSRF, троттлинг входа и подтверждения пароля</td></tr>
+<tr><td><code>backend/mental_math/accounts/cli.py</code></td><td>добавлен</td><td>+45 / −0</td><td>аккаунты родителей: регистрация, сессии, CSRF, троттлинг входа и подтверждения пароля</td></tr>
+<tr><td><code>backend/mental_math/accounts/models.py</code></td><td>добавлен</td><td>+40 / −0</td><td>аккаунты родителей: регистрация, сессии, CSRF, троттлинг входа и подтверждения пароля</td></tr>
+<tr><td><code>backend/mental_math/accounts/routes.py</code></td><td>добавлен</td><td>+130 / −0</td><td>аккаунты родителей: регистрация, сессии, CSRF, троттлинг входа и подтверждения пароля</td></tr>
+<tr><td><code>backend/mental_math/accounts/schemas.py</code></td><td>добавлен</td><td>+15 / −0</td><td>аккаунты родителей: регистрация, сессии, CSRF, троттлинг входа и подтверждения пароля</td></tr>
+<tr><td><code>backend/mental_math/accounts/security.py</code></td><td>добавлен</td><td>+29 / −0</td><td>аккаунты родителей: регистрация, сессии, CSRF, троттлинг входа и подтверждения пароля</td></tr>
+<tr><td><code>backend/mental_math/accounts/service.py</code></td><td>добавлен</td><td>+37 / −0</td><td>аккаунты родителей: регистрация, сессии, CSRF, троттлинг входа и подтверждения пароля</td></tr>
+<tr><td><code>backend/mental_math/config.py</code></td><td>добавлен</td><td>+54 / −0</td><td>настройки из окружения: режимы, политика, проверка URL и активации</td></tr>
+<tr><td><code>backend/mental_math/db.py</code></td><td>добавлен</td><td>+28 / −0</td><td>асинхронный движок SQLAlchemy</td></tr>
+<tr><td><code>backend/mental_math/game/__init__.py</code></td><td>добавлен</td><td>+0 / −0</td><td>игровые модели, маршруты, схемы, валидатор</td></tr>
+<tr><td><code>backend/mental_math/game/catalogue.py</code></td><td>добавлен</td><td>+421 / −0</td><td>каталог 47 навыков, 7 форм ответа, детерминированная генерация</td></tr>
+<tr><td><code>backend/mental_math/game/constraints.py</code></td><td>добавлен</td><td>+44 / −0</td><td>границы band, шаг сложности, ротация навыков</td></tr>
+<tr><td><code>backend/mental_math/game/engine.py</code></td><td>добавлен</td><td>+237 / −0</td><td>игровой движок: атомарный ответ, идемпотентный повтор, подсказки, resume</td></tr>
+<tr><td><code>backend/mental_math/game/generator.py</code></td><td>добавлен</td><td>+19 / −0</td><td>игровые модели, маршруты, схемы, валидатор</td></tr>
+<tr><td><code>backend/mental_math/game/hints.py</code></td><td>добавлен</td><td>+46 / −0</td><td>визуальные подсказки без ответа (counters, ten_frame, number_line, groups, pairs, target)</td></tr>
+<tr><td><code>backend/mental_math/game/models.py</code></td><td>добавлен</td><td>+97 / −0</td><td>игровые модели, маршруты, схемы, валидатор</td></tr>
+<tr><td><code>backend/mental_math/game/routes.py</code></td><td>добавлен</td><td>+64 / −0</td><td>игровые модели, маршруты, схемы, валидатор</td></tr>
+<tr><td><code>backend/mental_math/game/schemas.py</code></td><td>добавлен</td><td>+90 / −0</td><td>игровые модели, маршруты, схемы, валидатор</td></tr>
+<tr><td><code>backend/mental_math/game/validator.py</code></td><td>добавлен</td><td>+3 / −0</td><td>игровые модели, маршруты, схемы, валидатор</td></tr>
+<tr><td><code>backend/mental_math/health.py</code></td><td>добавлен</td><td>+35 / −0</td><td>readiness: база и ревизия Alembic</td></tr>
+<tr><td><code>backend/mental_math/main.py</code></td><td>добавлен</td><td>+44 / −0</td><td>сборка FastAPI: middleware, маршруты, runtime политики</td></tr>
+<tr><td><code>backend/mental_math/observability.py</code></td><td>добавлен</td><td>+123 / −0</td><td>JSON-логи с редактированием, метрики запросов/попыток/решений</td></tr>
+<tr><td><code>backend/mental_math/players/__init__.py</code></td><td>добавлен</td><td>+0 / −0</td><td>профили детей: темы, топики, режимы сложности, проверка поддерживаемых уровней</td></tr>
+<tr><td><code>backend/mental_math/players/models.py</code></td><td>добавлен</td><td>+31 / −0</td><td>профили детей: темы, топики, режимы сложности, проверка поддерживаемых уровней</td></tr>
+<tr><td><code>backend/mental_math/players/routes.py</code></td><td>добавлен</td><td>+79 / −0</td><td>профили детей: темы, топики, режимы сложности, проверка поддерживаемых уровней</td></tr>
+<tr><td><code>backend/mental_math/players/schemas.py</code></td><td>добавлен</td><td>+90 / −0</td><td>профили детей: темы, топики, режимы сложности, проверка поддерживаемых уровней</td></tr>
+<tr><td><code>backend/mental_math/players/service.py</code></td><td>добавлен</td><td>+17 / −0</td><td>профили детей: темы, топики, режимы сложности, проверка поддерживаемых уровней</td></tr>
+<tr><td><code>backend/mental_math/policy/__init__.py</code></td><td>добавлен</td><td>+0 / −0</td><td>правила, типы решений, сервис политики</td></tr>
+<tr><td><code>backend/mental_math/policy/evaluation.py</code></td><td>добавлен</td><td>+72 / −0</td><td>офлайн-оценка: согласие с правилами, latency, калибровка, reward</td></tr>
+<tr><td><code>backend/mental_math/policy/export.py</code></td><td>добавлен</td><td>+114 / −0</td><td>псевдонимный экспорт решений через allowlist</td></tr>
+<tr><td><code>backend/mental_math/policy/fallback.py</code></td><td>добавлен</td><td>+33 / −0</td><td>правила, типы решений, сервис политики</td></tr>
+<tr><td><code>backend/mental_math/policy/framework.py</code></td><td>добавлен</td><td>+91 / −0</td><td>транспорт Framework System One с типизированными сбоями и границами длины</td></tr>
+<tr><td><code>backend/mental_math/policy/outcomes.py</code></td><td>добавлен</td><td>+39 / −0</td><td>окна результатов prior/next 5, завершение, возврат</td></tr>
+<tr><td><code>backend/mental_math/policy/runtime.py</code></td><td>добавлен</td><td>+69 / −0</td><td>режимы rules/shadow/active, дедлайн 350 мс, гейт confidence и легальности</td></tr>
+<tr><td><code>backend/mental_math/policy/service.py</code></td><td>добавлен</td><td>+21 / −0</td><td>правила, типы решений, сервис политики</td></tr>
+<tr><td><code>backend/mental_math/policy/types.py</code></td><td>добавлен</td><td>+53 / −0</td><td>правила, типы решений, сервис политики</td></tr>
+<tr><td><code>backend/mental_math/student/__init__.py</code></td><td>добавлен</td><td>+0 / −0</td><td>модель ученика: mastery-v1-10s, классификатор ошибок, агрегаты навыков</td></tr>
+<tr><td><code>backend/mental_math/student/errors.py</code></td><td>добавлен</td><td>+18 / −0</td><td>модель ученика: mastery-v1-10s, классификатор ошибок, агрегаты навыков</td></tr>
+<tr><td><code>backend/mental_math/student/mastery.py</code></td><td>добавлен</td><td>+33 / −0</td><td>модель ученика: mastery-v1-10s, классификатор ошибок, агрегаты навыков</td></tr>
+<tr><td><code>backend/mental_math/student/models.py</code></td><td>добавлен</td><td>+24 / −0</td><td>модель ученика: mastery-v1-10s, классификатор ошибок, агрегаты навыков</td></tr>
+<tr><td><code>backend/mental_math/student/state.py</code></td><td>добавлен</td><td>+27 / −0</td><td>модель ученика: mastery-v1-10s, классификатор ошибок, агрегаты навыков</td></tr>
+<tr><td><code>backend/migrations/env.py</code></td><td>добавлен</td><td>+43 / −0</td><td>окружение Alembic (экранирование % в DSN)</td></tr>
+<tr><td><code>backend/migrations/versions/0001_accounts.py</code></td><td>добавлен</td><td>+31 / −0</td><td>миграции схемы 0001–0007</td></tr>
+<tr><td><code>backend/migrations/versions/0002_game_state.py</code></td><td>добавлен</td><td>+103 / −0</td><td>миграции схемы 0001–0007</td></tr>
+<tr><td><code>backend/migrations/versions/0003_hints_timing.py</code></td><td>добавлен</td><td>+23 / −0</td><td>миграции схемы 0001–0007</td></tr>
+<tr><td><code>backend/migrations/versions/0004_skill_state.py</code></td><td>добавлен</td><td>+38 / −0</td><td>миграции схемы 0001–0007</td></tr>
+<tr><td><code>backend/migrations/versions/0005_task_kinds.py</code></td><td>добавлен</td><td>+23 / −0</td><td>миграции схемы 0001–0007</td></tr>
+<tr><td><code>backend/migrations/versions/0006_policy_audit.py</code></td><td>добавлен</td><td>+27 / −0</td><td>миграции схемы 0001–0007</td></tr>
+<tr><td><code>backend/migrations/versions/0007_policy_confidence.py</code></td><td>добавлен</td><td>+21 / −0</td><td>миграции схемы 0001–0007</td></tr>
+<tr><td><code>backend/pyproject.toml</code></td><td>добавлен</td><td>+27 / −0</td><td>конфигурация backend-пакета и образа</td></tr>
+<tr><td><code>backend/tests/conftest.py</code></td><td>добавлен</td><td>+199 / −0</td><td>фикстуры: семья, урок, независимый решатель, фейковый транспорт</td></tr>
+<tr><td><code>backend/tests/integration/test_accounts.py</code></td><td>добавлен</td><td>+70 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_active_policy.py</code></td><td>добавлен</td><td>+161 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_attempt_atomicity.py</code></td><td>добавлен</td><td>+46 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_attempt_idempotency.py</code></td><td>добавлен</td><td>+70 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_concurrent_answers.py</code></td><td>добавлен</td><td>+59 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_deployment_security.py</code></td><td>добавлен</td><td>+97 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_difficulty_modes.py</code></td><td>добавлен</td><td>+162 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_hints.py</code></td><td>добавлен</td><td>+66 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_migrations_dsn.py</code></td><td>добавлен</td><td>+18 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_observability.py</code></td><td>добавлен</td><td>+62 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_parent_settings.py</code></td><td>добавлен</td><td>+67 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_player_ownership.py</code></td><td>добавлен</td><td>+24 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_policy_deadline.py</code></td><td>добавлен</td><td>+49 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_policy_export.py</code></td><td>добавлен</td><td>+106 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_profile_snapshots.py</code></td><td>добавлен</td><td>+20 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_readiness.py</code></td><td>добавлен</td><td>+40 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_recovery.py</code></td><td>добавлен</td><td>+18 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_resume_phases.py</code></td><td>добавлен</td><td>+66 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_security_contract.py</code></td><td>добавлен</td><td>+51 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_session_restart.py</code></td><td>добавлен</td><td>+76 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_shadow_policy.py</code></td><td>добавлен</td><td>+84 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/integration/test_task_kinds.py</code></td><td>добавлен</td><td>+104 / −0</td><td>интеграционные тесты на реальном PostgreSQL</td></tr>
+<tr><td><code>backend/tests/unit/test_catalogue.py</code></td><td>добавлен</td><td>+107 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_confidence_gate.py</code></td><td>добавлен</td><td>+37 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_error_classifier.py</code></td><td>добавлен</td><td>+36 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_framework_transport.py</code></td><td>добавлен</td><td>+127 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_identifiers.py</code></td><td>добавлен</td><td>+12 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_mastery.py</code></td><td>добавлен</td><td>+37 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_policy_evaluation.py</code></td><td>добавлен</td><td>+62 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_public_view_hides_answers.py</code></td><td>добавлен</td><td>+33 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/tests/unit/test_rule_policy.py</code></td><td>добавлен</td><td>+45 / −0</td><td>модульные тесты</td></tr>
+<tr><td><code>backend/uv.lock</code></td><td>добавлен</td><td>+567 / −0</td><td>конфигурация backend-пакета и образа</td></tr>
+<tr><td><code>compose.test.yaml</code></td><td>добавлен</td><td>+20 / −0</td><td>одноразовая тестовая PostgreSQL 18</td></tr>
+<tr><td><code>compose.yaml</code></td><td>добавлен</td><td>+44 / −0</td><td>compose-проект mmath: migrate, api, web без опубликованных портов</td></tr>
+<tr><td><code>deploy/.env.example</code></td><td>добавлен</td><td>+22 / −0</td><td>артефакты развёртывания и синтетические окружения</td></tr>
+<tr><td><code>deploy/Caddyfile</code></td><td>добавлен</td><td>+32 / −0</td><td>edge Caddy: SPA, /api, кэш, доверенные прокси</td></tr>
+<tr><td><code>deploy/Dockerfile.web</code></td><td>добавлен</td><td>+10 / −0</td><td>артефакты развёртывания и синтетические окружения</td></tr>
+<tr><td><code>deploy/compose.active.yaml</code></td><td>добавлен</td><td>+17 / −0</td><td>overlay active-политики: порог и авторизация</td></tr>
+<tr><td><code>deploy/compose.check.yaml</code></td><td>добавлен</td><td>+23 / −0</td><td>изолированная проверка развёртывания с проектной БД</td></tr>
+<tr><td><code>deploy/compose.lan-http.yaml</code></td><td>добавлен</td><td>+9 / −0</td><td>LAN HTTP-режим: явная публикация edge</td></tr>
+<tr><td><code>deploy/compose.public.yaml</code></td><td>добавлен</td><td>+18 / −0</td><td>public-режим: внешняя сеть Traefik, alias, MMATH_TRUSTED_PROXIES</td></tr>
+<tr><td><code>deploy/compose.shadow.yaml</code></td><td>добавлен</td><td>+14 / −0</td><td>overlay shadow-политики с монтируемым токеном</td></tr>
+<tr><td><code>deploy/test.lan.env</code></td><td>добавлен</td><td>+5 / −0</td><td>артефакты развёртывания и синтетические окружения</td></tr>
+<tr><td><code>deploy/test.public.env</code></td><td>добавлен</td><td>+6 / −0</td><td>артефакты развёртывания и синтетические окружения</td></tr>
+<tr><td><code>deploy/traefik/conf.d/mmath.yml</code></td><td>добавлен</td><td>+18 / −0</td><td>контракт маршрута для внешнего Traefik (правила minipc)</td></tr>
+<tr><td><code>docs/mental-math-adr.md</code></td><td>добавлен</td><td>+172 / −0</td><td>исходные ADR/HLD/LLD (закоммичены пользователем, 85003a3)</td></tr>
+<tr><td><code>docs/mental-math-hld.md</code></td><td>добавлен</td><td>+202 / −0</td><td>исходные ADR/HLD/LLD (закоммичены пользователем, 85003a3)</td></tr>
+<tr><td><code>docs/mental-math-lld.md</code></td><td>добавлен</td><td>+520 / −0</td><td>исходные ADR/HLD/LLD (закоммичены пользователем, 85003a3)</td></tr>
+<tr><td><code>docs/profiles/mental-math-web-platform.yaml</code></td><td>добавлен</td><td>+60 / −0</td><td>профиль топика</td></tr>
+<tr><td><code>docs/runbooks/account-recovery.md</code></td><td>добавлен</td><td>+11 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/runbooks/active-policy-rollout.md</code></td><td>добавлен</td><td>+44 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/runbooks/backup-restore.md</code></td><td>добавлен</td><td>+33 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/runbooks/deployment.md</code></td><td>добавлен</td><td>+47 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/runbooks/framework-integration.md</code></td><td>добавлен</td><td>+33 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/runbooks/mobile-installation.md</code></td><td>добавлен</td><td>+22 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/runbooks/policy-evaluation.md</code></td><td>добавлен</td><td>+36 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/runbooks/release-checklist.md</code></td><td>добавлен</td><td>+21 / −0</td><td>операционные ранбуки</td></tr>
+<tr><td><code>docs/superpowers/intents/2026-09-24-mental-math-web-platform-intent.md</code></td><td>добавлен</td><td>+97 / −0</td><td>артефакты IDD→SDD цепочки</td></tr>
+<tr><td><code>docs/superpowers/plans/2026-09-24-mental-math-web-platform.md</code></td><td>добавлен</td><td>+531 / −0</td><td>артефакты IDD→SDD цепочки</td></tr>
+<tr><td><code>docs/superpowers/specs/2026-09-24-mental-math-web-platform-design.md</code></td><td>добавлен</td><td>+322 / −0</td><td>артефакты IDD→SDD цепочки</td></tr>
+<tr><td><code>frontend/e2e/child-navigation.spec.ts</code></td><td>добавлен</td><td>+46 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/difficulty-modes.spec.ts</code></td><td>добавлен</td><td>+66 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/family-access.spec.ts</code></td><td>добавлен</td><td>+29 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/first-lesson.spec.ts</code></td><td>добавлен</td><td>+56 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/helpers.ts</code></td><td>добавлен</td><td>+41 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/language.spec.ts</code></td><td>добавлен</td><td>+29 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/pwa.spec.ts</code></td><td>добавлен</td><td>+65 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/resume.spec.ts</code></td><td>добавлен</td><td>+50 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/e2e/task-families.spec.ts</code></td><td>добавлен</td><td>+80 / −0</td><td>Playwright-сценарии</td></tr>
+<tr><td><code>frontend/index.html</code></td><td>добавлен</td><td>+18 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/package-lock.json</code></td><td>добавлен</td><td>+3276 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/package.json</code></td><td>добавлен</td><td>+31 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/playwright.config.ts</code></td><td>добавлен</td><td>+10 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/public/icons/icon-192.png</code></td><td>добавлен</td><td>+- / −-</td><td>PWA: манифест, service worker, offline-страница, иконки</td></tr>
+<tr><td><code>frontend/public/icons/icon-512.png</code></td><td>добавлен</td><td>+- / −-</td><td>PWA: манифест, service worker, offline-страница, иконки</td></tr>
+<tr><td><code>frontend/public/manifest.webmanifest</code></td><td>добавлен</td><td>+15 / −0</td><td>PWA: манифест, service worker, offline-страница, иконки</td></tr>
+<tr><td><code>frontend/public/offline.html</code></td><td>добавлен</td><td>+26 / −0</td><td>PWA: манифест, service worker, offline-страница, иконки</td></tr>
+<tr><td><code>frontend/public/sw.js</code></td><td>добавлен</td><td>+37 / −0</td><td>PWA: манифест, service worker, offline-страница, иконки</td></tr>
+<tr><td><code>frontend/src/api-schema.json</code></td><td>добавлен</td><td>+1820 / −0</td><td>типизированный клиент API и контракт OpenAPI</td></tr>
+<tr><td><code>frontend/src/api-types.ts</code></td><td>добавлен</td><td>+1237 / −0</td><td>типизированный клиент API и контракт OpenAPI</td></tr>
+<tr><td><code>frontend/src/api.ts</code></td><td>добавлен</td><td>+36 / −0</td><td>типизированный клиент API и контракт OpenAPI</td></tr>
+<tr><td><code>frontend/src/app.tsx</code></td><td>добавлен</td><td>+49 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/src/features/accounts/AccountPage.test.tsx</code></td><td>добавлен</td><td>+9 / −0</td><td>вход родителя, экран «нужна связь»</td></tr>
+<tr><td><code>frontend/src/features/accounts/AccountPage.tsx</code></td><td>добавлен</td><td>+22 / −0</td><td>вход родителя, экран «нужна связь»</td></tr>
+<tr><td><code>frontend/src/features/accounts/ConnectionRequired.tsx</code></td><td>добавлен</td><td>+7 / −0</td><td>вход родителя, экран «нужна связь»</td></tr>
+<tr><td><code>frontend/src/features/game/ChildHome.test.tsx</code></td><td>добавлен</td><td>+17 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/ChildHome.tsx</code></td><td>добавлен</td><td>+28 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/ChoicePad.tsx</code></td><td>добавлен</td><td>+12 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/Feedback.tsx</code></td><td>добавлен</td><td>+16 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/GamePage.tsx</code></td><td>добавлен</td><td>+139 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/Hint.module.css</code></td><td>добавлен</td><td>+14 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/Hint.test.tsx</code></td><td>добавлен</td><td>+26 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/Hint.tsx</code></td><td>добавлен</td><td>+54 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/NumberPad.module.css</code></td><td>добавлен</td><td>+7 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/NumberPad.test.tsx</code></td><td>добавлен</td><td>+13 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/NumberPad.tsx</code></td><td>добавлен</td><td>+13 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/SessionSummary.tsx</code></td><td>добавлен</td><td>+12 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/labels.ts</code></td><td>добавлен</td><td>+4 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/pendingSubmission.test.ts</code></td><td>добавлен</td><td>+20 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/pendingSubmission.ts</code></td><td>добавлен</td><td>+21 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/prompt.test.ts</code></td><td>добавлен</td><td>+26 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/prompt.ts</code></td><td>добавлен</td><td>+51 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/sessionReducer.test.ts</code></td><td>добавлен</td><td>+37 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/game/sessionReducer.ts</code></td><td>добавлен</td><td>+47 / −0</td><td>экран занятия: клавиатура, выбор, подсказки, обратная связь, редьюсер, pending</td></tr>
+<tr><td><code>frontend/src/features/players/PlayerPicker.test.tsx</code></td><td>добавлен</td><td>+24 / −0</td><td>выбор ребёнка, настройки, темы</td></tr>
+<tr><td><code>frontend/src/features/players/PlayerPicker.tsx</code></td><td>добавлен</td><td>+22 / −0</td><td>выбор ребёнка, настройки, темы</td></tr>
+<tr><td><code>frontend/src/features/players/PlayerSettings.tsx</code></td><td>добавлен</td><td>+31 / −0</td><td>выбор ребёнка, настройки, темы</td></tr>
+<tr><td><code>frontend/src/features/players/ThemeSelect.tsx</code></td><td>добавлен</td><td>+9 / −0</td><td>выбор ребёнка, настройки, темы</td></tr>
+<tr><td><code>frontend/src/features/progress/ProgressPage.tsx</code></td><td>добавлен</td><td>+29 / −0</td><td>страница успехов</td></tr>
+<tr><td><code>frontend/src/i18n.test.tsx</code></td><td>добавлен</td><td>+17 / −0</td><td>словарь ru/en и переключатель языка</td></tr>
+<tr><td><code>frontend/src/i18n.tsx</code></td><td>добавлен</td><td>+415 / −0</td><td>словарь ru/en и переключатель языка</td></tr>
+<tr><td><code>frontend/src/main.tsx</code></td><td>добавлен</td><td>+11 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/src/pwa.ts</code></td><td>добавлен</td><td>+39 / −0</td><td>регистрация service worker и баннер обновления</td></tr>
+<tr><td><code>frontend/src/styles.css</code></td><td>добавлен</td><td>+52 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/src/uuid.test.ts</code></td><td>добавлен</td><td>+10 / −0</td><td>UUIDv7 в браузере</td></tr>
+<tr><td><code>frontend/src/uuid.ts</code></td><td>добавлен</td><td>+11 / −0</td><td>UUIDv7 в браузере</td></tr>
+<tr><td><code>frontend/src/vite-env.d.ts</code></td><td>добавлен</td><td>+3 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/tsconfig.json</code></td><td>добавлен</td><td>+19 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>frontend/vite.config.ts</code></td><td>добавлен</td><td>+14 / −0</td><td>каркас SPA: Vite, TypeScript, стили, тесты</td></tr>
+<tr><td><code>scripts/backup_drill.py</code></td><td>добавлен</td><td>+63 / −0</td><td>проверки: развёртывание, контракт, ассеты, бэкап, экспорт OpenAPI</td></tr>
+<tr><td><code>scripts/check_assets.py</code></td><td>добавлен</td><td>+28 / −0</td><td>проверки: развёртывание, контракт, ассеты, бэкап, экспорт OpenAPI</td></tr>
+<tr><td><code>scripts/check_contract.py</code></td><td>добавлен</td><td>+25 / −0</td><td>проверки: развёртывание, контракт, ассеты, бэкап, экспорт OpenAPI</td></tr>
+<tr><td><code>scripts/check_deployment.py</code></td><td>добавлен</td><td>+120 / −0</td><td>проверки: развёртывание, контракт, ассеты, бэкап, экспорт OpenAPI</td></tr>
+<tr><td><code>scripts/export_openapi.py</code></td><td>добавлен</td><td>+15 / −0</td><td>проверки: развёртывание, контракт, ассеты, бэкап, экспорт OpenAPI</td></tr>
+</tbody></table></details>
+
+<h2>3. Результаты</h2>
+<h3>План ↔ дифф</h3>
+<table class="rpt-table"><thead><tr><th>Шаг плана</th><th>Статус</th><th>Свидетельство в диффе</th></tr></thead><tbody>
+<tr><td>T1 Family Access and Child Profiles</td><td><span class='badge ok'>DONE</span></td><td>accounts/*, players/*, test_accounts/test_player_ownership/test_parent_settings, AccountPage, PlayerPicker, PlayerSettings, family-access.spec, account-recovery.md — все в диффе; cbfe3d1</td></tr>
+<tr><td>T2 First Durable Lesson</td><td><span class='badge ok'>DONE</span></td><td>game/engine, student/*, policy/fallback+service, 0002_game_state, test_attempt_*/test_session_restart, GamePage, sessionReducer, pendingSubmission, first-lesson.spec; 92e7bb3. test_addition.py заменён test_catalogue.py в T4</td></tr>
+<tr><td>T3 Child Navigation, Hints and Resume</td><td><span class='badge ok'>DONE</span></td><td>game/hints, NumberPad/Feedback/ChildHome/SessionSummary, test_resume_phases/test_concurrent_answers/test_hints/test_profile_snapshots, resume/child-navigation.spec; f0e72e1</td></tr>
+<tr><td>T4 Automatic and Fixed Skill Practice</td><td><span class='badge ok'>DONE</span></td><td>catalogue, constraints, mastery, errors, ProgressPage, test_catalogue/test_mastery/test_error_classifier/test_rule_policy, test_difficulty_modes, миграция skill state (0004, в плане 0003); 4c2b8d9 + f80f646</td></tr>
+<tr><td>T5 Public Docker Release and Recovery</td><td><span class='badge ok'>DONE</span></td><td>overlays public/lan-http/check, Caddyfile, test.public/lan.env, deployment/backup-restore/release-checklist, test_deployment_security/test_readiness, check_deployment.py; внешние Traefik и PostgreSQL по решению пользователя; f4f60de</td></tr>
+<tr><td>T6 Connected Mobile PWA</td><td><span class='badge ok'>DONE</span></td><td>manifest, sw.js, offline.html, icons, ConnectionRequired, pwa.ts, pwa.spec, mobile-installation.md; 8447743</td></tr>
+<tr><td>T7 GPU Framework Shadow Policy</td><td><span class='badge ok'>DONE</span></td><td>policy/framework, runtime, types, test_framework_transport, test_shadow_policy/test_policy_deadline, framework-integration.md, миграция 0006_policy_audit (в плане 0004); e274ace</td></tr>
+<tr><td>T8 Learning Evidence and Offline Evaluation</td><td><span class='badge ok'>DONE</span></td><td>outcomes, export, evaluation, test_policy_evaluation, test_policy_export, policy-evaluation.md; миграция outcome-колонок не нужна (outcomes считаются по требованию), вместо неё 0007_policy_confidence; ab81de2</td></tr>
+<tr><td>T9 Guarded Active Policy</td><td><span class='badge ok'>DONE</span></td><td>runtime.gate_proposal, config активации, метрики по режиму, test_active_policy, test_confidence_gate, active-policy-rollout.md, compose.active; bc7804d</td></tr>
+<tr><td>Verification, Documentation and Task Closure</td><td><span class='badge ok'>DONE</span></td><td>каждая задача: тесты, ранбуки, ledger-события, спец-сценарии (18, strict), lint</td></tr>
+</tbody></table>
+<div class="note">Отклонения от плана, зафиксированные в ledger до сверки: нумерация миграций (skill state → 0004, task kinds → 0005, policy audit → 0006, confidence → 0007), необязательная миграция outcome-колонок не потребовалась — результаты вычисляются по требованию; <code>test_addition.py</code> заменён каталожным <code>test_catalogue.py</code>.</div>
+<h3>Покрытие Desired Outcomes intent — 8/8</h3>
+<table class="rpt-table"><thead><tr><th>Outcome</th><th>Статус</th><th>Свидетельство</th></tr></thead><tbody>
+<tr><td>O1 аккаунты и изоляция</td><td>покрыт</td><td>регистрация/вход, владение профилями, CSRF, троттлинг, secure-cookie в public</td></tr>
+<tr><td>O2 навигация ребёнка</td><td>покрыт, UX-03 pending</td><td>экраны, клавиатура/выбор, подсказки, фидбек; supervised review — человеческий чекпоинт</td></tr>
+<tr><td>O3 автоматический/фиксированный режим</td><td>покрыт</td><td>band на навык, продвижение/понижение, fixed-инвариантность, гейты active</td></tr>
+<tr><td>O4 resume и целостность</td><td>покрыт</td><td>атомарный коммит, идемпотентный повтор (включая после advance/finish), точный resume</td></tr>
+<tr><td>O5 Docker/TLS/LAN</td><td>покрыт</td><td>public за внешним Traefik, LAN HTTP, readiness, бэкап; DNS/маршрут — чекпоинт</td></tr>
+<tr><td>O6 connected PWA</td><td>покрыт, device review pending</td><td>манифест, SW без детских данных, offline-страница; реальные Android/iOS — чекпоинт</td></tr>
+<tr><td>O7 детерминизм и политика</td><td>покрыт</td><td>детерминированная арифметика, независимая модель ученика, rules/shadow/active с fallback</td></tr>
+<tr><td>O8 ревьюируемые слайсы</td><td>покрыт</td><td>план, ledger, спец-страницы, отчёты</td></tr>
+</tbody></table>
+<h3>Покрытие требований спецификации</h3>
+<p>Разделы 3–11 спецификации отражены в диффе: технологические границы (3), опыт ребёнка и родителя (4), профили и сложность (5), детерминированная математика и модель ученика (6), аккаунты и безопасность (7), долговечное состояние и resume (8), API (9), Framework и эволюция политики (10), эксплуатация, TLS и PWA (11). Acceptance-идентификаторы AUTH/MATH/RESUME/UX/MODE/STUDENT/OPS/POLICY/PWA покрыты тестами, кроме человеческих проверок UX-03 (supervised review), PWA-01 на реальных устройствах и живого smoke Framework — они остаются чекпоинтами релиз-чеклиста.</p>
+<h3>Излишки относительно плана</h3>
+<table class="rpt-table"><thead><tr><th>Изменение</th><th>Основание</th></tr></thead><tbody>
+<tr><td>S10 темы профиля (ThemeSelect, labels)</td><td>запрос пользователя, ledger</td></tr>
+<tr><td>S11 каталог 47 навыков и 7 форм ответа (task_kinds, ChoicePad, prompt)</td><td>запрос пользователя, ledger</td></tr>
+<tr><td>S12 локализация ru/en (i18n, language.spec)</td><td>запрос пользователя, ledger</td></tr>
+<tr><td>S13 ранбук развёртывания в iwiki</td><td>запрос пользователя, ledger</td></tr>
+<tr><td>S14 remediation ревью (test_public_view_hides_answers, test_migrations_dsn, target-подсказка, trusted proxies)</td><td>запрос пользователя, ledger</td></tr>
+<tr><td>deploy/traefik/conf.d, compose.check/shadow/active, scripts/*</td><td>инфраструктура T5/T7/T9 сверх перечня файлов плана</td></tr>
+<tr><td>docs/mental-math-{adr,hld,lld}.md, .iwiki.toml, .iwikiignore</td><td>коммит пользователя 85003a3; учётных данных нет</td></tr>
+</tbody></table>
+<div class="note warn"><b>WARNING (учтено):</b> излишки — пользовательские расширения S10–S14 и инфраструктура развёртывания; все записаны в ledger как spec drift и поглощены на этом гейте. Критических находок нет.</div>
+<h3>GWT-спецификации</h3>
+<p>Домен <code>mmath</code> в режиме strict: 18 сценариев, implements-привязки резолвятся по свежему графу (ревизия <code>fd0647c3…</code>). Привязки verifies к backend-тестам остаются unresolved по конфигурации (<code>include_tests = false</code>) — свидетельство тестов хранится в ledger-событиях. Новых наблюдаемых поведений без сценария не найдено.</p>
+<p><b>Итоговый вердикт: OK.</b> <code>result_check</code> записан во frontmatter плана (коммит 3708730).</p>
+
+<h2>4. Влияние на систему</h2>
+<table class="rpt-table"><thead><tr><th>Компонент</th><th>Поведенческие изменения</th><th>Риски и продолжения</th></tr></thead><tbody>
+<tr><td>Аккаунты и безопасность</td><td>новые сущности Account/AuthSession/LoginFailure; троттлинг по email+IP для входа и подтверждения пароля; cookie 30 дней</td><td>троттлинг зависит от реального IP → в public обязателен MMATH_TRUSTED_PROXIES</td></tr>
+<tr><td>Игровой контур</td><td>атомарная транзакция ответа под блокировкой ребёнка, идемпотентный повтор, подсказки без ответа</td><td>повтор после advance/finish покрыт тестом; issued-задания неизменны при смене режима</td></tr>
+<tr><td>Каталог и модель ученика</td><td>47 навыков, band на навык, mastery-v1-10s</td><td>сессия в fixed-режиме всегда стартует с первого навыка темы — ограничение ротации</td></tr>
+<tr><td>Политика</td><td>rules → shadow → active с гейтами; экспорт/оценка</td><td>active выключен конфигом до верификации confidence и калибровки</td></tr>
+<tr><td>Развёртывание</td><td>compose без портов, внешний Traefik и PostgreSQL 18, Caddy edge, readiness</td><td>DNS/маршрут, роль БД, CIDR Traefik — человеческие чекпоинты</td></tr>
+<tr><td>PWA</td><td>манифест, SW только с публичной оболочкой</td><td>реальная установка на устройствах не проверена</td></tr>
+</tbody></table>
+<div class="note">Открытые человеческие чекпоинты: DNS-запись и копия маршрута Traefik для <code>mmath.ikeniborn.ru</code>; роль и база <code>mmath</code> на платформенной PostgreSQL 18; <code>MMATH_TRUSTED_PROXIES</code> = CIDR сети Traefik с проверкой forwarded-адреса при первом public-старте; установка на Android/iOS; UX-03 и UX-02; живой smoke Framework System One после публикации маршрута; чекпоинт активации политики (верифицированная confidence, калибровка, записанное решение).</div>
+
+<h2>5. Схемы</h2>
+<h3>Архитектура развёртывания и границы</h3>
+<figure class="rpt-c4">
+<div class="boundary" data-label="Compose-проект mmath (без опубликованных портов)">
+  <div class="comp"><b>web</b><br><span class="sub">Caddy · SPA · /api → api · trusted_proxies</span></div>
+  <div class="comp"><b>api</b><br><span class="sub">FastAPI · uvicorn --proxy-headers · rules/shadow/active</span></div>
+  <div class="comp"><b>migrate</b><br><span class="sub">alembic upgrade head · одноразовый</span></div>
+</div>
+<div class="boundary" data-label="Внешние сервисы оператора">
+  <div class="comp ext"><b>Traefik</b><br><span class="sub">TLS · file provider · proxy-net · только public</span></div>
+  <div class="comp ext"><b>PostgreSQL 18</b><br><span class="sub">платформенная · LAN DSN · бэкапы</span></div>
+  <div class="comp ext"><b>Framework GPU Tools</b><br><span class="sub">POST /v1/systemone · bearer из файла · маршрут не опубликован</span></div>
+</div>
+</figure>
+<h3>Поток ответа ребёнка</h3>
+<figure class="rpt-flow">
+<div class="node">SPA: ответ + submission_id</div><div class="arrow"></div>
+<div class="node">engine.submit_attempt<br><small>блокировка ребёнка · повтор → сохранённый результат</small></div><div class="arrow"></div>
+<div class="node">grade + record_attempt<br><small>детерминированно · mastery</small></div><div class="arrow"></div>
+<div class="node">policy.resolve<br><small>rules · shadow · active (гейты, дедлайн 350 мс)</small></div><div class="arrow"></div>
+<div class="node">следующее задание<br><small>public_problem без ответа</small></div>
+</figure>
+<h3>Карта влияния изменений</h3>
+<figure class="rpt-c4">
+<div class="boundary" data-label="accounts → безопасность">
+  <div class="comp"><b>throttled()</b><br><span class="sub">вход + подтверждение пароля</span></div>
+  <div class="comp"><b>csrf_cookie()</b><br><span class="sub">срок = сессия</span></div>
+  <div class="comp ext"><b>Caddy trusted_proxies</b><br><span class="sub">реальный IP клиента</span></div>
+</div>
+<div class="boundary" data-label="game → контракт API-02">
+  <div class="comp"><b>public_problem</b><br><span class="sub">пустой операнд = null</span></div>
+  <div class="comp"><b>render_hint / target</b><br><span class="sub">только публичные величины</span></div>
+  <div class="comp"><b>Hint.tsx · prompt.ts</b><br><span class="sub">отрисовка target, эхо ответа</span></div>
+</div>
+<div class="boundary" data-label="policy → отказоустойчивость">
+  <div class="comp"><b>FrameworkTransport</b><br><span class="sub">все сбои httpx → network · границы длины</span></div>
+  <div class="comp"><b>gate_proposal</b><br><span class="sub">легальность → confidence</span></div>
+  <div class="comp"><b>evaluation</b><br><span class="sub">latency без таймаутов</span></div>
+</div>
+</figure>
+</main></body></html>
