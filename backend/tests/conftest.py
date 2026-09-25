@@ -105,13 +105,15 @@ async def lesson(family) -> Lesson:
 
 @pytest.fixture
 def counts(app):
-    from mental_math.game.models import Attempt, LearningSession, PolicyDecision
+    from mental_math.game.models import Attempt, LearningSession, PolicyDecision, Problem
 
     async def query(player_id: str) -> dict[str, int]:
         async with app.state.session_factory() as db:
             sessions = select(LearningSession.id).where(LearningSession.player_id == UUID(player_id))
             attempts = await db.scalar(select(func.count()).select_from(Attempt).where(Attempt.session_id.in_(sessions)))
             decisions = await db.scalar(select(func.count()).select_from(PolicyDecision).where(PolicyDecision.session_id.in_(sessions)))
-            return {"attempts": attempts, "decisions": decisions}
+            hinted_problems = await db.scalar(select(func.count()).select_from(Problem).where(Problem.session_id.in_(sessions), Problem.hinted_at.is_not(None)))
+            hinted_attempts = await db.scalar(select(func.count()).select_from(Attempt).where(Attempt.session_id.in_(sessions), Attempt.hint_used.is_(True)))
+            return {"attempts": attempts, "decisions": decisions, "hinted_problems": hinted_problems, "hinted_attempts": hinted_attempts}
 
     return query

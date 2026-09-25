@@ -10,6 +10,7 @@ async function registerWithChild(page: Page) {
   await page.getByLabel('Возраст').selectOption('6');
   await page.getByRole('button', { name: 'Создать профиль' }).click();
   await page.getByRole('link', { name: 'Играть' }).click();
+  await page.getByRole('link', { name: 'Начать' }).click();
   await expect(page.getByRole('heading', { name: /Задача 1 из/ })).toBeVisible();
 }
 
@@ -39,8 +40,8 @@ test('child answers, sees feedback, resumes after reload and finishes', async ({
   await page.getByRole('button', { name: 'Закончить занятие' }).click();
   await expect(page.getByRole('heading', { name: 'Занятие завершено' })).toBeVisible();
   await expect(page.getByRole('status')).toContainText('решено 2 из 10, верно 1');
-  await page.getByRole('link', { name: 'К выбору ребёнка' }).click();
-  await page.getByRole('link', { name: 'Играть' }).click();
+  await page.getByRole('link', { name: 'К домику' }).click();
+  await page.getByRole('link', { name: 'Начать' }).click();
   await expect(page.getByRole('heading', { name: /Задача 1 из/ })).toBeVisible();
 });
 

@@ -14,13 +14,13 @@ async def test_failure_before_commit_leaves_no_attempt(monkeypatch, family, less
     monkeypatch.setattr(engine, "decide", explode)
     with pytest.raises(RuntimeError):
         await family.post(f"/sessions/{lesson.session_id}/attempts", json=lesson.command)
-    assert (await counts(family.player_id)) == {"attempts": 0, "decisions": 0}
+    assert (await counts(family.player_id)) == {"attempts": 0, "decisions": 0, "hinted_problems": 0, "hinted_attempts": 0}
     snapshot = (await family.get(f"/sessions/{lesson.session_id}")).json()
     assert snapshot["version"] == lesson.version and snapshot["phase"] == "answer"
     monkeypatch.undo()
     recovered = await family.post(f"/sessions/{lesson.session_id}/attempts", json=lesson.command)
     assert recovered.status_code == 200
-    assert (await counts(family.player_id)) == {"attempts": 1, "decisions": 1}
+    assert (await counts(family.player_id)) == {"attempts": 1, "decisions": 1, "hinted_problems": 0, "hinted_attempts": 0}
 
 
 @pytest.mark.asyncio
@@ -34,7 +34,7 @@ async def test_lost_response_after_commit_is_replayed_without_second_write(app, 
     retried = await family.post(f"/sessions/{lesson.session_id}/attempts", json=lesson.command)
     assert retried.status_code == 200
     assert retried.json()["attempt_id"] == str(committed.attempt_id)
-    assert (await counts(family.player_id)) == {"attempts": 1, "decisions": 1}
+    assert (await counts(family.player_id)) == {"attempts": 1, "decisions": 1, "hinted_problems": 0, "hinted_attempts": 0}
 
 
 async def _account_id(app, email: str) -> UUID:

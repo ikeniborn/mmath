@@ -30,6 +30,7 @@ class LearningSession(Base):
     feedback: Mapped[dict | None] = mapped_column(JSON)
     answered_count: Mapped[int] = mapped_column(Integer, default=0)
     correct_count: Mapped[int] = mapped_column(Integer, default=0)
+    active_ms: Mapped[int] = mapped_column(Integer, default=0)
     active_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -48,6 +49,7 @@ class Problem(Base):
     operand_a: Mapped[int] = mapped_column(Integer, nullable=False)
     operand_b: Mapped[int] = mapped_column(Integer, nullable=False)
     correct_answer: Mapped[int] = mapped_column(Integer, nullable=False)
+    hinted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

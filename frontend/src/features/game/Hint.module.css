@@ -1,0 +1,12 @@
+.hint { display: grid; gap: 10px; padding: 16px; border: 2px dashed #c7b46a; border-radius: 16px; background: #fff9e3; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.dot { width: 22px; height: 22px; border-radius: 50%; background: #dd7a14; }
+.dotB { background: #126d67; }
+.frame { display: grid; grid-template-columns: repeat(5, 28px); gap: 4px; }
+.cell { width: 28px; height: 28px; border: 2px solid #697b83; border-radius: 6px; background: #fff; }
+.filledA { background: #dd7a14; border-color: #dd7a14; }
+.filledB { background: #126d67; border-color: #126d67; }
+.line { display: flex; justify-content: space-between; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tick { flex: 1; text-align: center; font-size: .8rem; }
+.start { color: #dd7a14; }
+.jump { color: #126d67; }

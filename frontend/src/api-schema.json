@@ -116,6 +116,75 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HintRequest": {
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "problem_id": {
+            "format": "uuid",
+            "title": "Problem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "problem_id",
+          "expected_version"
+        ],
+        "title": "HintRequest",
+        "type": "object"
+      },
+      "HintResult": {
+        "properties": {
+          "hint": {
+            "$ref": "#/components/schemas/HintView"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionSnapshot"
+          }
+        },
+        "required": [
+          "hint",
+          "session"
+        ],
+        "title": "HintResult",
+        "type": "object"
+      },
+      "HintView": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "counters",
+              "ten_frame",
+              "number_line"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "operand_a": {
+            "title": "Operand A",
+            "type": "integer"
+          },
+          "operand_b": {
+            "title": "Operand B",
+            "type": "integer"
+          },
+          "scale": {
+            "title": "Scale",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "operand_a",
+          "operand_b",
+          "scale"
+        ],
+        "title": "HintView",
+        "type": "object"
+      },
       "PasswordConfirmation": {
         "properties": {
           "password": {
@@ -489,6 +558,10 @@
       },
       "SessionSnapshot": {
         "properties": {
+          "active_ms": {
+            "title": "Active Ms",
+            "type": "integer"
+          },
           "answered_count": {
             "title": "Answered Count",
             "type": "integer"
@@ -511,6 +584,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/Feedback"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HintView"
               },
               {
                 "type": "null"
@@ -558,6 +641,10 @@
             "title": "State",
             "type": "string"
           },
+          "time_limit_ms": {
+            "title": "Time Limit Ms",
+            "type": "integer"
+          },
           "total_problems": {
             "title": "Total Problems",
             "type": "integer"
@@ -575,11 +662,14 @@
           "phase",
           "current_problem",
           "feedback",
+          "hint",
           "last_attempt_id",
           "settings",
           "answered_count",
           "correct_count",
-          "total_problems"
+          "total_problems",
+          "active_ms",
+          "time_limit_ms"
         ],
         "title": "SessionSnapshot",
         "type": "object"
@@ -1028,6 +1118,58 @@
       }
     },
     "/api/v1/sessions": {
+      "get": {
+        "operationId": "active_session_api_v1_sessions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "player_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Player Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SessionSnapshot"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Active Session Api V1 Sessions Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "204": {
+            "description": "No active session"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Active Session",
+        "tags": [
+          "game"
+        ]
+      },
       "post": {
         "operationId": "start_session_api_v1_sessions_post",
         "requestBody": {
@@ -1265,6 +1407,59 @@
           }
         },
         "summary": "Finish Session",
+        "tags": [
+          "game"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/hint": {
+      "post": {
+        "operationId": "hint_session_api_v1_sessions__session_id__hint_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HintResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Hint Session",
         "tags": [
           "game"
         ]

@@ -1,0 +1,50 @@
+import { expect, test } from '@playwright/test';
+import { readOperands, registerWithChild } from './helpers';
+
+test('answer phase, hint and feedback survive reload without a second grade', async ({ page }) => {
+  await registerWithChild(page, 'resume');
+  await page.getByRole('link', { name: 'Начать' }).click();
+  await expect(page.getByRole('heading', { name: 'Задача 1 из 10' })).toBeVisible();
+  const before = await readOperands(page);
+  await page.getByRole('button', { name: '3' }).click();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Задача 1 из 10' })).toBeVisible();
+  expect(await readOperands(page)).toEqual(before);
+  await page.getByRole('button', { name: 'Подсказка' }).click();
+  await expect(page.getByRole('img', { name: /Подсказка/ })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('img', { name: /Подсказка/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Подсказка' })).toHaveCount(0);
+  const [a, b] = await readOperands(page);
+  for (const digit of String(a + b)) await page.getByRole('button', { name: digit, exact: true }).click();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Верно!' })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Верно!' })).toBeVisible();
+  await page.getByRole('link', { name: 'Выйти к домику' }).click();
+  await expect(page.getByText(/Есть незаконченное занятие/)).toBeVisible();
+  await page.getByRole('link', { name: 'Продолжить' }).click();
+  await expect(page.getByRole('heading', { name: 'Верно!' })).toBeVisible();
+  await page.getByRole('button', { name: 'Дальше' }).click();
+  await expect(page.getByRole('heading', { name: 'Задача 2 из 10' })).toBeVisible();
+});
+
+test('a stale browser tab reconciles instead of grading twice', async ({ browser }) => {
+  const context = await browser.newContext();
+  const first = await context.newPage();
+  await registerWithChild(first, 'race');
+  await first.getByRole('link', { name: 'Начать' }).click();
+  await expect(first.getByRole('heading', { name: 'Задача 1 из 10' })).toBeVisible();
+  const second = await context.newPage();
+  await second.goto(first.url());
+  await expect(second.getByRole('heading', { name: 'Задача 1 из 10' })).toBeVisible();
+  const [a, b] = await readOperands(first);
+  for (const digit of String(a + b)) await first.getByRole('button', { name: digit, exact: true }).click();
+  await first.getByRole('button', { name: 'Ответить' }).click();
+  await expect(first.getByRole('heading', { name: 'Верно!' })).toBeVisible();
+  await second.getByRole('button', { name: '1' }).click();
+  await second.getByRole('button', { name: 'Ответить' }).click();
+  await expect(second.getByRole('heading', { name: 'Верно!' })).toBeVisible();
+  await expect(second.getByText(/уже принят на другом экране/)).toBeVisible();
+  await context.close();
+});

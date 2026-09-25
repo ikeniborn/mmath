@@ -30,3 +30,5 @@ export async function api<T>(path: string, method = 'GET', body?: unknown): Prom
 
 export async function bootstrap(): Promise<Session> { return api<Session>('/auth/session'); }
 export function clearCsrf() { csrf = ''; }
+export type HintView = components['schemas']['HintView'];
+export type HintResult = components['schemas']['HintResult'];

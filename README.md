@@ -12,7 +12,8 @@ answer.
 |---|---|
 | Family access and child profiles (accounts, CSRF, parent confirmation, operator recovery) | done |
 | First durable lesson (sessions, addition tasks, idempotent answers, resume, finish) | done |
-| Hints, timing limits, skill catalogue, automatic difficulty, public Docker release, PWA, GPU policy | planned |
+| Child navigation, visual hints, foreground time limits, exact resume across tabs and reloads | done |
+| Skill catalogue, automatic difficulty, public Docker release, PWA, GPU policy | planned |
 
 ## Stack
 
@@ -52,4 +53,7 @@ frontend/node_modules/.bin/openapi-typescript frontend/src/api-schema.json -o fr
 `/api/v1/auth/*`, `/api/v1/players`, and the game flow: `POST /sessions` (returns the
 child's active session or creates one), `GET /sessions/{id}`, `POST /sessions/{id}/attempts`
 (idempotent by `submission_id`, versioned by `expected_version`), `POST /sessions/{id}/advance`,
-`POST /sessions/{id}/finish`. Every mutation requires the session cookie and CSRF header.
+`POST /sessions/{id}/hint` (records exposure once, replays safely), `POST /sessions/{id}/finish`, and
+`GET /sessions?player_id=` for the child home screen (204 when nothing is unfinished). Every mutation
+requires the session cookie and CSRF header. Timing samples come from foreground-only browser time and
+are validated server-side; the configured 5/10/15-minute limit ends the session after the current feedback.

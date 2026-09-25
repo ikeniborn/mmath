@@ -16,11 +16,12 @@ header { display: flex; justify-content: space-between; gap: 16px; align-items: 
 .game h2:focus { outline: none; }
 .expression { font-size: clamp(2.4rem, 10vw, 3.6rem); font-weight: 800; margin: 12px 0; letter-spacing: .04em; }
 .expression .answer { display: inline-block; min-width: 1.4em; color: #126d67; }
-.keypad { display: grid; grid-template-columns: repeat(3, minmax(64px, 1fr)); gap: 12px; margin: 16px 0; }
-.keypad button { min-height: 64px; font-size: 1.6rem; background: #fff; color: #243247; border: 2px solid #697b83; }
-.keypad button:hover { background: #eef4f3; }
-.keypad .primary, .game .primary { grid-column: span 2; background: #126d67; color: #fff; border: 0; }
+.game .primary { background: #126d67; color: #fff; border: 0; min-height: 64px; font-size: 1.3rem; }
 .game .primary:hover { background: #0b5550; }
+.game .secondary, .button.secondary { background: #e4eeec; color: #124f4a; }
+.feedback { display: grid; gap: 12px; }
+.home { max-width: 560px; }
+.button.big { min-height: 64px; font-size: 1.3rem; padding-inline: 28px; }
 .game-footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 24px; align-items: center; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 20px; margin-bottom: 24px; }
 .avatar { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 20px; color: #734c00; background: #ffdb81; font-size: 2rem; }
@@ -39,3 +40,4 @@ fieldset { border: 2px solid #d3dfdd; border-radius: 10px; }
 [role="alert"] { color: #a52b20; font-weight: 700; }
 @media (max-width: 480px) { main { padding: 16px; } .card { padding: 18px; } }
 @media (prefers-reduced-motion: no-preference) { button, .button { transition: background .15s; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

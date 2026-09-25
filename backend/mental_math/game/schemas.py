@@ -16,6 +16,18 @@ class SubmitAttempt(BaseModel):
     expected_version: int = Field(ge=1)
 
 
+class HintRequest(BaseModel):
+    problem_id: UUID
+    expected_version: int = Field(ge=1)
+
+
+class HintView(BaseModel):
+    kind: Literal["counters", "ten_frame", "number_line"]
+    operand_a: int
+    operand_b: int
+    scale: int
+
+
 class AdvanceSession(BaseModel):
     attempt_id: UUID
     expected_version: int = Field(ge=1)
@@ -52,11 +64,14 @@ class SessionSnapshot(BaseModel):
     phase: Literal["answer", "feedback"]
     current_problem: PublicProblem | None
     feedback: Feedback | None
+    hint: HintView | None
     last_attempt_id: UUID | None
     settings: SessionSettings
     answered_count: int
     correct_count: int
     total_problems: int
+    active_ms: int
+    time_limit_ms: int
 
 
 class AttemptResult(BaseModel):
@@ -64,4 +79,9 @@ class AttemptResult(BaseModel):
     correct: bool
     feedback: Feedback
     next_problem: PublicProblem | None
+    session: SessionSnapshot
+
+
+class HintResult(BaseModel):
+    hint: HintView
     session: SessionSnapshot

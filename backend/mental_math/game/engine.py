@@ -15,8 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from mental_math.accounts.security import now
 from mental_math.game.generator import generate_addition
+from mental_math.game.hints import render_hint
 from mental_math.game.models import Attempt, LearningSession, PolicyDecision, Problem
-from mental_math.game.schemas import AttemptResult, Feedback, PublicProblem, SessionSnapshot, SubmitAttempt
+from mental_math.game.schemas import AttemptResult, Feedback, HintResult, PublicProblem, SessionSnapshot, SubmitAttempt
 from mental_math.game.validator import grade
 from mental_math.players.models import Player
 from mental_math.players.service import owned_player
@@ -36,7 +37,12 @@ def public_problem(problem: Problem | None) -> PublicProblem | None:
 
 async def snapshot(db: AsyncSession, session: LearningSession) -> SessionSnapshot:
     current = await db.get(Problem, session.current_problem_id) if session.current_problem_id else None
-    return SessionSnapshot(id=session.id, player_id=session.player_id, version=session.version, state=session.state, phase=session.phase, current_problem=public_problem(current), feedback=Feedback(**session.feedback) if session.feedback else None, last_attempt_id=session.last_attempt_id, settings=session.settings, answered_count=session.answered_count, correct_count=session.correct_count, total_problems=TOTAL_PROBLEMS)
+    hint = render_hint(current) if current is not None and current.hinted_at is not None else None
+    return SessionSnapshot(id=session.id, player_id=session.player_id, version=session.version, state=session.state, phase=session.phase, current_problem=public_problem(current), feedback=Feedback(**session.feedback) if session.feedback else None, hint=hint, last_attempt_id=session.last_attempt_id, settings=session.settings, answered_count=session.answered_count, correct_count=session.correct_count, total_problems=TOTAL_PROBLEMS, active_ms=session.active_ms, time_limit_ms=time_limit_ms(session))
+
+
+def time_limit_ms(session: LearningSession) -> int:
+    return int(session.settings["session_minutes"]) * 60_000
 
 
 def conflict(current: SessionSnapshot) -> HTTPException:
@@ -67,7 +73,7 @@ async def start_session(db: AsyncSession, account_id: UUID, player_id: UUID) -> 
     if "addition" not in player.topics:
         raise HTTPException(422, detail={"code": "skill_unavailable", "supported": ["addition"]})
     settings = {"mode": player.mode, "difficulty_band": player.difficulty_band, "topics": list(player.topics), "session_minutes": player.session_minutes}
-    session = LearningSession(player_id=player.id, settings=settings, state="active", phase="answer", version=1, answered_count=0, correct_count=0)
+    session = LearningSession(player_id=player.id, settings=settings, state="active", phase="answer", version=1, answered_count=0, correct_count=0, active_ms=0)
     db.add(session)
     await db.flush()
     first = _issue(session, 1)
@@ -77,6 +83,13 @@ async def start_session(db: AsyncSession, account_id: UUID, player_id: UUID) -> 
     session.active_from = now()
     await db.flush()
     return await snapshot(db, session), True
+
+
+async def active_session(db: AsyncSession, account_id: UUID, player_id: UUID) -> SessionSnapshot | None:
+    """Read-only lookup for the child home screen; never creates a session."""
+    player = await owned_player(db, account_id, player_id)
+    session = await db.scalar(select(LearningSession).where(LearningSession.player_id == player.id, LearningSession.state == "active"))
+    return await snapshot(db, session) if session is not None else None
 
 
 async def read_session(db: AsyncSession, account_id: UUID, session_id: UUID) -> SessionSnapshot:
@@ -110,12 +123,14 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
         raise conflict(current)
     problem = await db.get(Problem, session.current_problem_id)
     correct = grade(problem, command.answer)
-    attempt = Attempt(session_id=session.id, problem_id=problem.id, submission_id=command.submission_id, fingerprint=fingerprint(command), answer=command.answer, correct=correct, response_ms=_validated_timing(session, command.response_ms), hint_used=False)
+    response_ms = _validated_timing(session, command.response_ms)
+    attempt = Attempt(session_id=session.id, problem_id=problem.id, submission_id=command.submission_id, fingerprint=fingerprint(command), answer=command.answer, correct=correct, response_ms=response_ms, hint_used=problem.hinted_at is not None)
     db.add(attempt)
     await db.flush()
     skill = await record_attempt(db, player.id, problem.skill, problem.band, correct)
     session.answered_count += 1
     session.correct_count += int(correct)
+    session.active_ms += response_ms or 0
     state = PolicyState(skill=problem.skill, band=problem.band, mode=session.settings["mode"], attempts=skill.attempts, correct=skill.correct, session_answered=session.answered_count, last_correct=correct)
     decision = decide(state)
     db.add(PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason))
@@ -123,7 +138,7 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
     session.last_attempt_id = attempt.id
     session.phase = "feedback"
     session.pending_problem_id = None
-    if session.answered_count < TOTAL_PROBLEMS:
+    if session.answered_count < TOTAL_PROBLEMS and session.active_ms < time_limit_ms(session):
         pending = _issue(session, problem.ordinal + 1)
         db.add(pending)
         await db.flush()
@@ -136,6 +151,23 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
 async def _feedback_for(db: AsyncSession, attempt: Attempt) -> Feedback:
     problem = await db.get(Problem, attempt.problem_id)
     return Feedback(correct=attempt.correct, submitted_answer=attempt.answer, correct_answer=problem.correct_answer)
+
+
+async def hint_session(db: AsyncSession, account_id: UUID, session_id: UUID, problem_id: UUID, expected_version: int) -> HintResult:
+    """Record hint exposure once under the child lock; an already-exposed hint replays without mutation."""
+    _, session = await _owned_session(db, account_id, session_id)
+    problem = await db.scalar(select(Problem).where(Problem.id == problem_id, Problem.session_id == session.id))
+    if problem is None:
+        raise HTTPException(404, detail={"code": "not_found"})
+    if problem.hinted_at is not None:
+        return HintResult(hint=render_hint(problem), session=await snapshot(db, session))
+    current = await snapshot(db, session)
+    if session.state != "active" or session.phase != "answer" or problem.id != session.current_problem_id or expected_version != session.version:
+        raise conflict(current)
+    problem.hinted_at = now()
+    session.version += 1
+    await db.flush()
+    return HintResult(hint=render_hint(problem), session=await snapshot(db, session))
 
 
 async def advance_session(db: AsyncSession, account_id: UUID, session_id: UUID, attempt_id: UUID, expected_version: int) -> SessionSnapshot:

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import type { SessionSnapshot } from '../../api';
 import { acceptSnapshot, gameReducer, initialState } from './sessionReducer';
 
-const base: SessionSnapshot = { id: 's', player_id: 'p', version: 3, state: 'active', phase: 'answer', current_problem: { id: 'q1', ordinal: 1, skill: 'addition', band: 0, operation: 'addition', operand_a: 2, operand_b: 3 }, feedback: null, last_attempt_id: null, settings: { mode: 'automatic', difficulty_band: 0, topics: ['addition'], session_minutes: 10 }, answered_count: 0, correct_count: 0, total_problems: 10 };
+const base: SessionSnapshot = { id: 's', player_id: 'p', version: 3, state: 'active', phase: 'answer', current_problem: { id: 'q1', ordinal: 1, skill: 'addition', band: 0, operation: 'addition', operand_a: 2, operand_b: 3 }, feedback: null, hint: null, last_attempt_id: null, active_ms: 0, time_limit_ms: 600000, settings: { mode: 'automatic', difficulty_band: 0, topics: ['addition'], session_minutes: 10 }, answered_count: 0, correct_count: 0, total_problems: 10 };
 
 test('an older snapshot never replaces a newer one', () => {
   const newer = { ...base, version: 4 };

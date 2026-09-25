@@ -10,7 +10,7 @@ async def test_retry_does_not_duplicate(family, lesson, counts):
     assert first.json()["attempt_id"] == second.json()["attempt_id"]
     assert first.json()["correct"] is True
     assert second.json()["session"]["version"] == first.json()["session"]["version"]
-    assert (await counts(family.player_id)) == {"attempts": 1, "decisions": 1}
+    assert (await counts(family.player_id)) == {"attempts": 1, "decisions": 1, "hinted_problems": 0, "hinted_attempts": 0}
 
 
 @pytest.mark.asyncio
