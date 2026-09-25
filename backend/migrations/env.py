@@ -8,6 +8,8 @@ from sqlalchemy import pool
 from mental_math.db import Base
 from mental_math.accounts import models as account_models  # noqa: F401
 from mental_math.players import models as player_models  # noqa: F401
+from mental_math.game import models as game_models  # noqa: F401
+from mental_math.student import models as student_models  # noqa: F401
 
 config = context.config
 database_url = os.environ.get("MMATH_DATABASE_URL")

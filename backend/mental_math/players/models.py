@@ -1,4 +1,6 @@
-from uuid import UUID, uuid4
+from uuid import UUID
+
+from uuid6 import uuid7
 
 from sqlalchemy import CheckConstraint, ForeignKey, JSON, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
@@ -16,7 +18,7 @@ class Player(Base):
         CheckConstraint("session_minutes IN (5, 10, 15)", name="player_minutes_allowed"),
     )
 
-    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid7)
     account_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     age: Mapped[int]

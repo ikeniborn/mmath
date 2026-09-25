@@ -125,10 +125,118 @@ export interface paths {
         patch: operations["update_player_api_v1_players__player_id__patch"];
         trace?: never;
     };
+    "/api/v1/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Session */
+        post: operations["start_session_api_v1_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Session */
+        get: operations["read_session_api_v1_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{session_id}/advance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Advance Session */
+        post: operations["advance_session_api_v1_sessions__session_id__advance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{session_id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Attempt */
+        post: operations["submit_attempt_api_v1_sessions__session_id__attempts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{session_id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Finish Session */
+        post: operations["finish_session_api_v1_sessions__session_id__finish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdvanceSession */
+        AdvanceSession: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /** Expected Version */
+            expected_version: number;
+        };
+        /** AttemptResult */
+        AttemptResult: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /** Correct */
+            correct: boolean;
+            feedback: components["schemas"]["Feedback"];
+            next_problem: components["schemas"]["PublicProblem"] | null;
+            session: components["schemas"]["SessionSnapshot"];
+        };
         /** Credentials */
         Credentials: {
             /**
@@ -138,6 +246,15 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** Feedback */
+        Feedback: {
+            /** Correct */
+            correct: boolean;
+            /** Correct Answer */
+            correct_answer: number;
+            /** Submitted Answer */
+            submitted_answer: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -229,12 +346,109 @@ export interface components {
             /** Topics */
             topics: ("addition" | "subtraction" | "multiplication")[];
         };
+        /** PublicProblem */
+        PublicProblem: {
+            /** Band */
+            band: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Operand A */
+            operand_a: number;
+            /** Operand B */
+            operand_b: number;
+            /** Operation */
+            operation: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Skill */
+            skill: string;
+        };
+        /** SessionSettings */
+        SessionSettings: {
+            /** Difficulty Band */
+            difficulty_band: number;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "automatic" | "fixed";
+            /** Session Minutes */
+            session_minutes: number;
+            /** Topics */
+            topics: string[];
+        };
+        /** SessionSnapshot */
+        SessionSnapshot: {
+            /** Answered Count */
+            answered_count: number;
+            /** Correct Count */
+            correct_count: number;
+            current_problem: components["schemas"]["PublicProblem"] | null;
+            feedback: components["schemas"]["Feedback"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Attempt Id */
+            last_attempt_id: string | null;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "answer" | "feedback";
+            /**
+             * Player Id
+             * Format: uuid
+             */
+            player_id: string;
+            settings: components["schemas"]["SessionSettings"];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "active" | "finished";
+            /** Total Problems */
+            total_problems: number;
+            /** Version */
+            version: number;
+        };
         /** SessionView */
         SessionView: {
             /** Csrf Token */
             csrf_token: string;
             /** Email */
             email: string | null;
+        };
+        /** StartSession */
+        StartSession: {
+            /**
+             * Player Id
+             * Format: uuid
+             */
+            player_id: string;
+        };
+        /** SubmitAttempt */
+        SubmitAttempt: {
+            /** Answer */
+            answer: number;
+            /** Expected Version */
+            expected_version: number;
+            /**
+             * Problem Id
+             * Format: uuid
+             */
+            problem_id: string;
+            /** Response Ms */
+            response_ms?: number | null;
+            /**
+             * Submission Id
+             * Format: uuid
+             */
+            submission_id: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -499,6 +713,180 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlayerView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_session_api_v1_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartSession"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_session_api_v1_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    advance_session_api_v1_sessions__session_id__advance_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdvanceSession"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_attempt_api_v1_sessions__session_id__attempts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitAttempt"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finish_session_api_v1_sessions__session_id__finish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
                 };
             };
             /** @description Validation Error */

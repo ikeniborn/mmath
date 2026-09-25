@@ -1,6 +1,64 @@
 {
   "components": {
     "schemas": {
+      "AdvanceSession": {
+        "properties": {
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "expected_version"
+        ],
+        "title": "AdvanceSession",
+        "type": "object"
+      },
+      "AttemptResult": {
+        "properties": {
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "correct": {
+            "title": "Correct",
+            "type": "boolean"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/Feedback"
+          },
+          "next_problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicProblem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionSnapshot"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "correct",
+          "feedback",
+          "next_problem",
+          "session"
+        ],
+        "title": "AttemptResult",
+        "type": "object"
+      },
       "Credentials": {
         "properties": {
           "email": {
@@ -20,6 +78,29 @@
           "password"
         ],
         "title": "Credentials",
+        "type": "object"
+      },
+      "Feedback": {
+        "properties": {
+          "correct": {
+            "title": "Correct",
+            "type": "boolean"
+          },
+          "correct_answer": {
+            "title": "Correct Answer",
+            "type": "integer"
+          },
+          "submitted_answer": {
+            "title": "Submitted Answer",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "correct",
+          "submitted_answer",
+          "correct_answer"
+        ],
+        "title": "Feedback",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -327,6 +408,182 @@
         "title": "PlayerView",
         "type": "object"
       },
+      "PublicProblem": {
+        "properties": {
+          "band": {
+            "title": "Band",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "operand_a": {
+            "title": "Operand A",
+            "type": "integer"
+          },
+          "operand_b": {
+            "title": "Operand B",
+            "type": "integer"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "skill": {
+            "title": "Skill",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ordinal",
+          "skill",
+          "band",
+          "operation",
+          "operand_a",
+          "operand_b"
+        ],
+        "title": "PublicProblem",
+        "type": "object"
+      },
+      "SessionSettings": {
+        "properties": {
+          "difficulty_band": {
+            "title": "Difficulty Band",
+            "type": "integer"
+          },
+          "mode": {
+            "enum": [
+              "automatic",
+              "fixed"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "session_minutes": {
+            "title": "Session Minutes",
+            "type": "integer"
+          },
+          "topics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mode",
+          "difficulty_band",
+          "topics",
+          "session_minutes"
+        ],
+        "title": "SessionSettings",
+        "type": "object"
+      },
+      "SessionSnapshot": {
+        "properties": {
+          "answered_count": {
+            "title": "Answered Count",
+            "type": "integer"
+          },
+          "correct_count": {
+            "title": "Correct Count",
+            "type": "integer"
+          },
+          "current_problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicProblem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Feedback"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_attempt_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempt Id"
+          },
+          "phase": {
+            "enum": [
+              "answer",
+              "feedback"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "player_id": {
+            "format": "uuid",
+            "title": "Player Id",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SessionSettings"
+          },
+          "state": {
+            "enum": [
+              "active",
+              "finished"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "total_problems": {
+            "title": "Total Problems",
+            "type": "integer"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "player_id",
+          "version",
+          "state",
+          "phase",
+          "current_problem",
+          "feedback",
+          "last_attempt_id",
+          "settings",
+          "answered_count",
+          "correct_count",
+          "total_problems"
+        ],
+        "title": "SessionSnapshot",
+        "type": "object"
+      },
       "SessionView": {
         "properties": {
           "csrf_token": {
@@ -351,6 +608,66 @@
           "csrf_token"
         ],
         "title": "SessionView",
+        "type": "object"
+      },
+      "StartSession": {
+        "properties": {
+          "player_id": {
+            "format": "uuid",
+            "title": "Player Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "player_id"
+        ],
+        "title": "StartSession",
+        "type": "object"
+      },
+      "SubmitAttempt": {
+        "properties": {
+          "answer": {
+            "maximum": 1000.0,
+            "minimum": -1000.0,
+            "title": "Answer",
+            "type": "integer"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "problem_id": {
+            "format": "uuid",
+            "title": "Problem Id",
+            "type": "string"
+          },
+          "response_ms": {
+            "anyOf": [
+              {
+                "maximum": 3600000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Ms"
+          },
+          "submission_id": {
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "submission_id",
+          "problem_id",
+          "answer",
+          "expected_version"
+        ],
+        "title": "SubmitAttempt",
         "type": "object"
       },
       "ValidationError": {
@@ -707,6 +1024,249 @@
         "summary": "Update Player",
         "tags": [
           "players"
+        ]
+      }
+    },
+    "/api/v1/sessions": {
+      "post": {
+        "operationId": "start_session_api_v1_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSnapshot"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Session",
+        "tags": [
+          "game"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "get": {
+        "operationId": "read_session_api_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Session",
+        "tags": [
+          "game"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/advance": {
+      "post": {
+        "operationId": "advance_session_api_v1_sessions__session_id__advance_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Advance Session",
+        "tags": [
+          "game"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/attempts": {
+      "post": {
+        "operationId": "submit_attempt_api_v1_sessions__session_id__attempts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitAttempt"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Attempt",
+        "tags": [
+          "game"
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}/finish": {
+      "post": {
+        "operationId": "finish_session_api_v1_sessions__session_id__finish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Finish Session",
+        "tags": [
+          "game"
         ]
       }
     }
