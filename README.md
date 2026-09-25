@@ -18,7 +18,8 @@ answer.
 | Visual themes per child profile: flowers, dolls, cars, construction machinery (hint counters use the chosen icons) | done |
 | Russian and English interface: detected from the browser, switchable in the header, remembered per browser | done |
 | Deployment behind the external Traefik edge and the platform PostgreSQL: one-shot migrations, readiness, metrics, redacted JSON logs, isolated deployment check, backup drill | done |
-| PWA, GPU policy | planned |
+| Connected mobile PWA: manifest, icons, standalone install, service worker caching only the public shell, connection-required page, safe-screen updates | done |
+| GPU policy (shadow, evaluation, guarded active) | planned |
 
 ## Stack
 
@@ -42,7 +43,8 @@ docker compose --env-file .env -f compose.yaml -f deploy/compose.public.yaml up 
 LAN HTTP mode (`deploy/compose.lan-http.yaml`) publishes the edge on an explicit LAN or loopback address
 without TLS. Details, health contract and recovery: `docs/runbooks/deployment.md`,
 `docs/runbooks/backup-restore.md`, `docs/runbooks/release-checklist.md`,
-`docs/runbooks/account-recovery.md`.
+`docs/runbooks/account-recovery.md`, `docs/runbooks/mobile-installation.md` (installing on phones; the app is connected-only and
+caches no child data).
 
 ## Tests
 

@@ -16,5 +16,5 @@ Every public release passes these gates; the human checkpoints are signed by a p
 - Public exposure: DNS record and the Traefik `conf.d` route are added only after explicit authorization; the API origin matches the public host exactly.
 - External PostgreSQL: backup schedule agreed, credentials stored outside the repository, `MMATH_DATABASE_URL` never logged or committed.
 - Supervised usability review with a younger (5–6) and an older (9–10) child, recording only actionable interface findings and no identifying data. Status: **not yet performed**.
-- Device installation review for the PWA (future task): record device and browser versions.
+- Device installation review for the PWA per `mobile-installation.md`: Android (Chromium) and iOS (Safari) install, launch, offline launch after sign-out, update banner at a safe screen. Record device model, OS and browser versions here. Status: **not yet performed** (Chromium service-worker and cache behaviour is covered by `frontend/e2e/pwa.spec.ts`).
 - Known limitation F-001: email is unverified and recovery is operator-assisted; the parent help text states it.

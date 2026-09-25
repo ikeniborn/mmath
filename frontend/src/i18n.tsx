@@ -177,6 +177,10 @@ const ru = {
   'skill.division_quotient': 'Деление с остатком: частное',
   'skill.remainder': 'Деление с остатком: остаток',
   'skill.compare': 'Сравнение',
+  'offline.title': 'Нужно подключение',
+  'offline.text': 'Занятия проходят только с подключением к интернету. Ответы и прогресс хранятся на сервере, ничего не теряется. Подключитесь и попробуйте снова.',
+  'update.available': 'Доступно обновление приложения.',
+  'update.apply': 'Обновить',
 } as const;
 
 export type Key = keyof typeof ru;
@@ -355,6 +359,10 @@ const en: Record<Key, string> = {
   'skill.division_quotient': 'Division with remainder: quotient',
   'skill.remainder': 'Division with remainder: remainder',
   'skill.compare': 'Comparison',
+  'offline.title': 'Connection required',
+  'offline.text': 'Practice needs an internet connection. Answers and progress live on the server, so nothing is lost. Connect and try again.',
+  'update.available': 'An app update is available.',
+  'update.apply': 'Update',
 };
 
 const messages: Record<Lang, Record<Key, string>> = { ru, en };
