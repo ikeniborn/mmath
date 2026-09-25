@@ -1,0 +1,23 @@
+# Isolated verification harness only: a project-scoped PostgreSQL with no published port and its own
+# volume, so scripts/check_deployment.py --isolated never touches an operator database. Not for deployments.
+services:
+  postgres-check:
+    image: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+    environment:
+      POSTGRES_DB: mmath_check
+      POSTGRES_USER: mmath_check
+      POSTGRES_PASSWORD: mmath_check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmath_check -d mmath_check"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+  migrate:
+    environment:
+      MMATH_DATABASE_URL: postgresql+psycopg://mmath_check:mmath_check@postgres-check:5432/mmath_check
+    depends_on:
+      postgres-check:
+        condition: service_healthy
+  api:
+    environment:
+      MMATH_DATABASE_URL: postgresql+psycopg://mmath_check:mmath_check@postgres-check:5432/mmath_check

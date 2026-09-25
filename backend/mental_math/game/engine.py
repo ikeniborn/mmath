@@ -20,6 +20,7 @@ from mental_math.game.hints import render_hint
 from mental_math.game.models import Attempt, LearningSession, PolicyDecision, Problem
 from mental_math.game.schemas import AttemptResult, Feedback, HintResult, PublicProblem, SessionSnapshot, SubmitAttempt
 from mental_math.game.validator import grade
+from mental_math.observability import metrics
 from mental_math.players.models import Player
 from mental_math.players.service import owned_player
 from mental_math.policy.service import decide, state_payload
@@ -157,6 +158,7 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
         session.error_streak = 0
     record = PolicyDecision(attempt_id=attempt.id, session_id=session.id, mode=decision.mode, allowed_actions=list(decision.allowed_actions), state=state_payload(state), provider=decision.proposal.provider, model_version=decision.proposal.model_version, proposed_action=decision.proposal.action, applied_action=decision.applied_action, latency_ms=decision.latency_ms, fallback_reason=decision.fallback_reason)
     db.add(record)
+    metrics.observe_attempt(correct=correct, applied_action=decision.applied_action, fallback_reason=decision.fallback_reason, latency_ms=decision.latency_ms, mode=decision.mode)
     session.feedback = Feedback(correct=correct, submitted_answer=command.answer, correct_answer=problem.correct_answer).model_dump()
     session.last_attempt_id = attempt.id
     session.phase = "feedback"
