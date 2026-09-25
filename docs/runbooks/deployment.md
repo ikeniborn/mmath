@@ -33,15 +33,24 @@ LAN HTTP is an explicit choice, never a fallback: credentials and content are vi
 Services on `minipc` live under `/opt/<service>`; mmath is `/opt/mmath`. The directory holds the source checkout the images are built from and the only copy of the runtime configuration:
 
 - `/opt/mmath/src` — git checkout of the deployed revision (`git -C /opt/mmath/src pull` to update, then rebuild).
-- `/opt/mmath/src/.env` — mode `600`, owner `ikeniborn`, git-ignored; the DSN password lives only here. Compose loads it implicitly because it sits next to `compose.yaml`, so no command has to name the file. The tracked `deploy/.env.example` carries the placeholders.
-- Compose project name `mmath`; run every command from the checkout.
+- `/opt/mmath/.env` — mode `600`, owner `ikeniborn`, outside the checkout; the DSN password lives only here. The tracked `deploy/.env.example` carries the placeholders.
+- Compose project name `mmath`; `deploy/minipc-lan.sh` wraps every compose command with this env file and the checkout as project directory (`up|ps|logs|down|config`).
 
-LAN deployment on this host (no public domain): `MMATH_MODE=lan-http`, `MMATH_ORIGIN=http://192.168.68.135:8080`, `MMATH_LAN_BIND=192.168.68.135`, `MMATH_LAN_PORT=8080` (port 80 belongs to the platform Traefik). The platform PostgreSQL must carry an HBA rule for this host without TLS, e.g. `host mmath mmath 192.168.68.135/32 scram-sha-256`, placed above any broader `reject` rule and followed by `SELECT pg_reload_conf()`; otherwise the API logs `pg_hba.conf rejects connection ... no encryption`.
+LAN deployment on this host (no public domain): `MMATH_MODE=lan-http`, `MMATH_ORIGIN=http://192.168.68.135:8080`, `MMATH_LAN_BIND=192.168.68.135`, `MMATH_LAN_PORT=8080` (port 80 belongs to the platform Traefik).
+
+Database access follows the platform's generated `pg_hba.conf` (never edited by hand): LAN clients match `host all +external_login 192.168.68.0/24 scram-sha-256`, so the application role must be a member of `external_login`, non-privileged and LOGIN. Run once on the framework host as the platform superuser:
+
+```sql
+ALTER ROLE mmath NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS LOGIN;
+GRANT external_login TO mmath;
+```
+
+A probe from minipc with a wrong password must answer `password authentication failed`; `pg_hba.conf rejects connection ... no encryption` means the membership is missing.
 
 ```bash
-cd /opt/mmath/src
-docker compose -f compose.yaml -f deploy/compose.lan-http.yaml up -d --build --wait
-docker compose -f compose.yaml -f deploy/compose.lan-http.yaml ps
+/opt/mmath/src/deploy/minipc-lan.sh config
+/opt/mmath/src/deploy/minipc-lan.sh up
+/opt/mmath/src/deploy/minipc-lan.sh ps
 ```
 
 ## Migrations, health and restart
