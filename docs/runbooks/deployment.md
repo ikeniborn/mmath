@@ -28,6 +28,22 @@ docker compose --env-file .env -f compose.yaml -f deploy/compose.lan-http.yaml u
 
 LAN HTTP is an explicit choice, never a fallback: credentials and content are visible to anyone on the network segment. Bind to a LAN address, never to a WAN interface, and prefer `127.0.0.1` for a single-machine setup.
 
+## Host placement on minipc
+
+Services on `minipc` live under `/opt/<service>`; mmath is `/opt/mmath`. The directory holds the source checkout the images are built from and the only copy of the runtime configuration:
+
+- `/opt/mmath/src` — git checkout of the deployed revision (`git -C /opt/mmath/src pull` to update, then rebuild).
+- `/opt/mmath/.env` — mode `600`, owner `ikeniborn`; the DSN password lives only here. `/opt/mmath/.env.example` carries the placeholders.
+- Compose project name `mmath`; run every command from the checkout with `--env-file /opt/mmath/.env`.
+
+LAN deployment on this host (no public domain): `MMATH_MODE=lan-http`, `MMATH_ORIGIN=http://192.168.68.135:8080`, `MMATH_LAN_BIND=192.168.68.135`, `MMATH_LAN_PORT=8080` (port 80 belongs to the platform Traefik). The platform PostgreSQL must carry an HBA rule for this host without TLS, e.g. `host mmath mmath 192.168.68.135/32 scram-sha-256`, otherwise the API logs `pg_hba.conf rejects connection ... no encryption`.
+
+```bash
+cd /opt/mmath/src
+docker compose --env-file /opt/mmath/.env -f compose.yaml -f deploy/compose.lan-http.yaml up -d --build --wait
+docker compose --env-file /opt/mmath/.env -f compose.yaml -f deploy/compose.lan-http.yaml ps
+```
+
 ## Migrations, health and restart
 
 `migrate` runs `alembic upgrade head` once before the API starts; the API refuses to become healthy until `GET /health/ready` reports the database reachable and the schema at the current revision. `/health/*` and `/internal/metrics` are reachable only inside the compose network (the edge does not route them). A migration failure leaves the previous containers stopped and the database untouched; fix and re-run `up`. `docker compose ... down` without `--volumes` keeps all data because the data lives in the external database.
