@@ -51,3 +51,20 @@ async def test_other_family_cannot_touch_session(family, other_family, lesson):
     assert (await other_family.get(f"/sessions/{lesson.session_id}")).status_code == 404
     assert (await other_family.post(f"/sessions/{lesson.session_id}/attempts", json=lesson.command)).status_code == 404
     assert (await other_family.post("/sessions", {"player_id": family.player_id})).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_replay_after_advance_and_after_finish_returns_the_stored_result(family, lesson, counts):
+    path = f"/sessions/{lesson.session_id}/attempts"
+    first = (await family.post(path, json=lesson.command)).json()
+    advanced = await family.post(f"/sessions/{lesson.session_id}/advance", json={"attempt_id": first["attempt_id"], "expected_version": first["session"]["version"]})
+    assert advanced.status_code == 200 and advanced.json()["phase"] == "answer"
+    replay = await family.post(path, json=lesson.command)
+    assert replay.status_code == 200, replay.text
+    assert replay.json()["attempt_id"] == first["attempt_id"] and replay.json()["feedback"] == first["feedback"]
+    assert replay.json()["session"]["version"] == advanced.json()["version"]
+    assert (await family.post(f"/sessions/{lesson.session_id}/finish")).status_code == 200
+    finished_replay = await family.post(path, json=lesson.command)
+    assert finished_replay.status_code == 200, finished_replay.text
+    assert finished_replay.json()["feedback"] == first["feedback"] and finished_replay.json()["session"]["state"] == "finished"
+    assert (await counts(family.player_id))["attempts"] == 1

@@ -14,7 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mental_math.accounts.security import now
-from mental_math.game.catalogue import CATALOGUE, generate, skills_for_topics
+from mental_math.game.catalogue import CATALOGUE, eligible_pairs, generate, skills_for_topics
 from mental_math.game.constraints import band_bounds, next_skill, step_band
 from mental_math.game.hints import render_hint
 from mental_math.game.models import Attempt, LearningSession, PolicyDecision, Problem
@@ -37,7 +37,9 @@ TIMING_TOLERANCE = timedelta(seconds=5)
 def public_problem(problem: Problem | None) -> PublicProblem | None:
     if problem is None:
         return None
-    return PublicProblem(id=problem.id, ordinal=problem.ordinal, skill=problem.skill, band=problem.band, operation=problem.operation, operand_a=problem.operand_a, operand_b=problem.operand_b, kind=problem.kind, prompt=problem.prompt)
+    # A missing-operand task keeps its answer server-side: the blanked operand is null in the public view.
+    blank = (problem.prompt or {}).get("blank") if problem.kind == "missing" else None
+    return PublicProblem(id=problem.id, ordinal=problem.ordinal, skill=problem.skill, band=problem.band, operation=problem.operation, operand_a=None if blank == "a" else problem.operand_a, operand_b=None if blank == "b" else problem.operand_b, kind=problem.kind, prompt=problem.prompt)
 
 
 async def snapshot(db: AsyncSession, session: LearningSession) -> SessionSnapshot:
@@ -132,7 +134,7 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
     if replay is not None:
         if replay.fingerprint != fingerprint(command):
             raise HTTPException(409, detail={"code": "submission_conflict"})
-        return AttemptResult(attempt_id=replay.id, correct=replay.correct, feedback=Feedback(**session.feedback) if session.last_attempt_id == replay.id else await _feedback_for(db, replay), next_problem=None, session=await snapshot(db, session))
+        return AttemptResult(attempt_id=replay.id, correct=replay.correct, feedback=Feedback(**session.feedback) if session.last_attempt_id == replay.id and session.feedback else await _feedback_for(db, replay), next_problem=None, session=await snapshot(db, session))
     current = await snapshot(db, session)
     if session.state != "active" or session.phase != "answer" or command.expected_version != session.version or command.problem_id != session.current_problem_id:
         raise conflict(current)
@@ -150,7 +152,7 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
     session.correct_streak = session.correct_streak + 1 if correct and not hinted else 0
     session.error_streak = 0 if correct else session.error_streak + 1
     low, high = band_bounds(problem.skill)
-    eligible = len(skills_for_topics(session.settings["topics"]))
+    eligible = len(eligible_pairs(session.settings["topics"], session.settings["mode"], session.settings["difficulty_band"], await _automatic_bands(db, player.id)))
     state = PolicyState(skill=problem.skill, band=problem.band, min_band=low, max_band=high, mode=session.settings["mode"], attempts=skill.attempts, correct=skill.correct, mastery=skill.mastery, correct_streak=session.correct_streak, error_streak=session.error_streak, session_answered=session.answered_count, skill_run=session.skill_run, last_correct=correct, last_hinted=hinted, other_skills=max(0, eligible - 1))
     decision = await resolve(state, policy)
     if session.settings["mode"] == "automatic" and decision.applied_action in {"harder", "easier"}:

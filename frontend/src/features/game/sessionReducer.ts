@@ -35,7 +35,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, snapshot, entry: '', status: 'ready' };
     }
     case 'digit':
-      if (state.status !== 'ready' || state.snapshot?.phase !== 'answer' || state.entry.length >= 3) return state;
+      if (state.status !== 'ready' || state.snapshot?.phase !== 'answer' || state.entry.length >= 4) return state;  // the catalogue's largest answer is 1000
       return { ...state, entry: state.entry === '0' ? action.digit : state.entry + action.digit };
     case 'erase':
       return state.status === 'ready' ? { ...state, entry: state.entry.slice(0, -1) } : state;

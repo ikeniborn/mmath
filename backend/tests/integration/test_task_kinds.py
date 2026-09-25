@@ -56,7 +56,8 @@ async def test_compare_and_parity_answers_are_graded_and_wrong_choices_are_other
 
 
 @pytest.mark.asyncio
-async def test_missing_operand_prompt_carries_result_and_hint_never_carries_answer(family):
+async def test_missing_operand_public_view_and_hint_carry_only_visible_quantities(family):
+    """API-02 over the wire: the blanked operand is null and every hint operand is a public quantity."""
     await configure(family, topics=["addition"], difficulty_band=4, mode="fixed")
     session = (await family.post("/sessions", {"player_id": family.player_id})).json()
     seen_missing = False
@@ -64,14 +65,34 @@ async def test_missing_operand_prompt_carries_result_and_hint_never_carries_answ
         problem = session["current_problem"]
         if problem["kind"] == "missing":
             seen_missing = True
+            blank = problem["prompt"]["blank"]
+            assert problem["operand_a" if blank == "a" else "operand_b"] is None
+            known = problem["operand_b" if blank == "a" else "operand_a"]
             hinted = await family.post(f"/sessions/{session['id']}/hint", json={"problem_id": problem["id"], "expected_version": session["version"]})
-            assert hinted.status_code == 200
+            assert hinted.status_code == 200, hinted.text
             hint = hinted.json()["hint"]
-            assert hint["kind"] in {"counters", "ten_frame", "number_line", "groups", "pairs"} and "correct_answer" not in hint
+            assert hint["kind"] in {"number_line", "target"}
+            assert {hint["operand_a"], hint["operand_b"]} <= {known, problem["prompt"]["result"]}
             session = hinted.json()["session"]
-            assert problem["prompt"]["result"] == problem["operand_a"] + problem["operand_b"]
         _, session = await play_one(family, session)
     assert seen_missing
+
+
+@pytest.mark.asyncio
+async def test_division_hint_counts_jumps_and_never_sends_the_quotient(family):
+    await configure(family, topics=["division"], difficulty_band=4, mode="fixed")
+    session = (await family.post("/sessions", {"player_id": family.player_id})).json()
+    seen = 0
+    while session["state"] == "active":
+        problem = session["current_problem"]
+        if problem["kind"] == "result" and problem["operation"] in {"division", "remainder"}:
+            seen += 1
+            hinted = await family.post(f"/sessions/{session['id']}/hint", json={"problem_id": problem["id"], "expected_version": session["version"]})
+            hint = hinted.json()["hint"]
+            assert hint["kind"] == "target" and (hint["operand_a"], hint["operand_b"]) == (problem["operand_b"], problem["operand_a"])
+            session = hinted.json()["session"]
+        _, session = await play_one(family, session)
+    assert seen
 
 
 @pytest.mark.asyncio

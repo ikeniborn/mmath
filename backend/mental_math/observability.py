@@ -110,10 +110,14 @@ metrics = Metrics()
 
 async def request_metrics(request: Request, call_next) -> Response:
     started = time.perf_counter()
-    response = await call_next(request)
-    route = request.scope.get("route")
-    template = getattr(route, "path", None) or "unmatched"
-    metrics.observe_request(template, response.status_code)
-    if template.startswith("/api/"):
-        request.app.state.logger.info("request", extra={"route": template, "method": request.method, "status": response.status_code, "duration_ms": int((time.perf_counter() - started) * 1000)})
-    return response
+    status = 500  # an unhandled exception becomes uvicorn's 500; it must still be counted and logged
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        return response
+    finally:
+        route = request.scope.get("route")
+        template = getattr(route, "path", None) or "unmatched"
+        metrics.observe_request(template, status)
+        if template.startswith("/api/"):
+            request.app.state.logger.info("request", extra={"route": template, "method": request.method, "status": status, "duration_ms": int((time.perf_counter() - started) * 1000)})

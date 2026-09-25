@@ -5,19 +5,19 @@ The project ships two containers, `api` and `web` (Caddy serving the SPA and pro
 ## Prerequisites
 
 - Docker with Compose v2 on the edge host. On the minipc host the project lives at `/opt/minipc-traefik/mmath/` next to the other services; the real `.env` stays only there with mode `600`, the tracked `deploy/.env.example` carries placeholders only.
-- A database and role on the platform PostgreSQL 18 (`framework` host, LAN `192.168.68.123:5432`, no TLS by owner decision, so the DSN is LAN-only). Role bootstrap on that platform does not create application databases: ask the platform owner for role `mmath` (LOGIN, non-privileged) owning database `mmath`, then set `MMATH_DATABASE_URL`. `host.docker.internal` is only for a database on the docker host itself.
+- A database and role on the platform PostgreSQL 18 (`framework` host, LAN `192.168.68.123:5432`, no TLS by owner decision, so the DSN is LAN-only). Role bootstrap on that platform does not create application databases: ask the platform owner for role `mmath` (LOGIN, non-privileged) owning database `mmath`, then set `MMATH_DATABASE_URL`. Percent-encode reserved characters in the password (`@` → `%40`, `/` → `%2F`, `#` → `%23`); SQLAlchemy and the migrations accept the encoded form. `host.docker.internal` is only for a database on the docker host itself.
 - Public mode: the external Traefik (file provider only, the docker provider is disabled) on network `proxy-net` with entrypoint `websecure` and certificate resolver `letsencrypt`; the DNS record `mmath.ikeniborn.ru` → the edge host. Exposure is a human decision: do not add the DNS record or copy the route before the release checklist is signed off.
 
 ## Public mode
 
 ```bash
 cp deploy/.env.example .env
-# edit .env: MMATH_DATABASE_URL, MMATH_MODE=public, MMATH_ORIGIN=https://<host>, TRAEFIK_NETWORK, MMATH_EDGE_ALIAS
+# edit .env: MMATH_DATABASE_URL, MMATH_MODE=public, MMATH_ORIGIN=https://<host>, TRAEFIK_NETWORK, MMATH_EDGE_ALIAS, MMATH_TRUSTED_PROXIES
 docker compose --env-file .env -f compose.yaml -f deploy/compose.public.yaml config --quiet
 docker compose --env-file .env -f compose.yaml -f deploy/compose.public.yaml up -d --build --wait
 ```
 
-Then copy the tracked route `deploy/traefik/conf.d/mmath.yml` to `/opt/minipc-traefik/conf.d/mmath.yml` (back up any previous copy first; the file provider reloads automatically). Its router `mmath-web` uses the exact rule ``Host(`mmath.ikeniborn.ru`)``, entrypoint `websecure`, resolver `letsencrypt` and service `http://mmath-web:80`, so `MMATH_EDGE_ALIAS` must stay `mmath-web`. The contract test in `backend/tests/integration/test_deployment_security.py` asserts these values; change them together. The API listens only inside the compose network and trusts forwarded headers only from the edge.
+Then copy the tracked route `deploy/traefik/conf.d/mmath.yml` to `/opt/minipc-traefik/conf.d/mmath.yml` (back up any previous copy first; the file provider reloads automatically). Its router `mmath-web` uses the exact rule ``Host(`mmath.ikeniborn.ru`)``, entrypoint `websecure`, resolver `letsencrypt` and service `http://mmath-web:80`, so `MMATH_EDGE_ALIAS` must stay `mmath-web`. The contract test in `backend/tests/integration/test_deployment_security.py` asserts these values; change them together. The API listens only inside the compose network and trusts forwarded headers only from the edge. The edge (Caddy) in turn trusts `X-Forwarded-For` only from `MMATH_TRUSTED_PROXIES`, the CIDR of the Traefik network (`docker network inspect proxy-net --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'`); without it every internet client would share Traefik's address and the per-address sign-in throttle would degrade to per-account, letting anyone lock a parent out. Verify after the first public start: sign in from one device, watch the API log's `request` lines, and confirm `login_throttled` does not fire for a second device after five failures on the first.
 
 ## LAN HTTP mode
 

@@ -89,3 +89,39 @@ def test_programming_errors_are_not_swallowed():
     from mental_math.policy.framework import FAILURE_TAXONOMY
 
     assert KeyError not in FAILURE_TAXONOMY and TypeError not in FAILURE_TAXONOMY
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("error", [httpx.ProxyError("proxy refused CONNECT"), httpx.UnsupportedProtocol("no scheme"), httpx.RemoteProtocolError("truncated"), httpx.TooManyRedirects("loop")])
+async def test_every_httpx_transport_error_is_a_typed_network_failure(error):
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise error
+
+    proposal = await transport_with(handler).predict(STATE, ALLOWED)
+    assert proposal.failure_code == "network" and proposal.action is None
+
+
+@pytest.mark.asyncio
+async def test_over_long_answer_is_malformed_and_model_alias_is_bounded():
+    long_action = "repeat_current_difficulty"
+    proposal = await transport_with(lambda request: httpx.Response(200, json={"answers": {"next_action": long_action}, "usage": {}, "routing": {"model": "laya-auto"}})).predict(STATE, ALLOWED)
+    assert proposal.failure_code == "malformed"
+    proposal = await transport_with(lambda request: httpx.Response(200, json={"answers": {"next_action": {"choice": long_action, "probabilities": {long_action: 0.9}}}, "usage": {}, "routing": {"model": "laya-auto"}})).predict(STATE, ALLOWED)
+    assert proposal.failure_code == "malformed"
+    alias = "laya-" + "x" * 60
+    proposal = await transport_with(lambda request: httpx.Response(200, json={"answers": {"next_action": "repeat"}, "usage": {}, "routing": {"model": alias}})).predict(STATE, ALLOWED)
+    assert proposal.action == "repeat" and proposal.model_version == alias[:40]
+
+
+def test_framework_url_requires_a_scheme(monkeypatch):
+    from mental_math.config import Settings
+
+    monkeypatch.setenv("MMATH_DATABASE_URL", "postgresql+psycopg://u:p@db/x")
+    monkeypatch.setenv("MMATH_ORIGIN", "http://test")
+    monkeypatch.setenv("MMATH_MODE", "lan-http")
+    monkeypatch.setenv("MMATH_POLICY_MODE", "shadow")
+    monkeypatch.setenv("MMATH_FRAMEWORK_URL", "framework.internal")
+    with pytest.raises(RuntimeError, match="http"):
+        Settings.from_env()
+    monkeypatch.setenv("MMATH_FRAMEWORK_URL", "https://framework.internal")
+    assert Settings.from_env().framework_url == "https://framework.internal"

@@ -13,7 +13,7 @@ Every public release passes these gates; the human checkpoints are signed by a p
 
 ## Human checkpoints
 
-- Public exposure: DNS record and the Traefik `conf.d` route are added only after explicit authorization; the API origin matches the public host exactly.
+- Public exposure: DNS record and the Traefik `conf.d` route are added only after explicit authorization; the API origin matches the public host exactly; `MMATH_TRUSTED_PROXIES` equals the Traefik network CIDR and the forwarded-address check in `deployment.md` passed.
 - External PostgreSQL: backup schedule agreed, credentials stored outside the repository, `MMATH_DATABASE_URL` never logged or committed.
 - Supervised usability review with a younger (5–6) and an older (9–10) child, recording only actionable interface findings and no identifying data. Status: **not yet performed**.
 - Device installation review for the PWA per `mobile-installation.md`: Android (Chromium) and iOS (Safari) install, launch, offline launch after sign-out, update banner at a safe screen. Record device model, OS and browser versions here. Status: **not yet performed** (Chromium service-worker and cache behaviour is covered by `frontend/e2e/pwa.spec.ts`).

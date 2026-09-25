@@ -126,7 +126,12 @@ def solve(problem: dict) -> int:
     if kind == "result":
         return ops[problem["operation"]](a, b)
     if kind == "missing":
-        return a if prompt["blank"] == "a" else b
+        known, result, op = (b if prompt["blank"] == "a" else a), prompt["result"], problem["operation"]
+        if op == "addition":
+            return result - known
+        if op == "subtraction":
+            return result + known if prompt["blank"] == "a" else a - result
+        return result // known
     if kind == "chain":
         return sum(prompt["terms"])
     if kind == "sequence":

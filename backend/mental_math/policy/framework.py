@@ -25,7 +25,9 @@ class TransportFailure(Exception):
         self.code = code
 
 
-FAILURE_TAXONOMY: tuple[type[BaseException], ...] = (TransportFailure, httpx.TimeoutException, httpx.NetworkError, httpx.ProtocolError, httpx.DecodingError, httpx.TooManyRedirects)
+FAILURE_TAXONOMY: tuple[type[BaseException], ...] = (TransportFailure, httpx.HTTPError, httpx.InvalidURL, httpx.StreamError)
+MAX_ACTION_CHARS = 20  # PolicyDecision.proposed_action; no legal action is longer
+MAX_MODEL_CHARS = 40  # PolicyDecision.model_version
 
 
 class FrameworkTransport:
@@ -49,7 +51,7 @@ class FrameworkTransport:
             response = await self._client.post(f"{self._base}/v1/systemone", json=body, headers=headers)
         except httpx.TimeoutException:
             return PolicyProposal.failure("timeout")
-        except (httpx.NetworkError, httpx.ProtocolError, httpx.TooManyRedirects):
+        except (httpx.HTTPError, httpx.InvalidURL, httpx.StreamError):  # proxy, unsupported protocol, network, protocol, redirects
             return PolicyProposal.failure("network")
         if response.status_code == 429:
             return PolicyProposal.failure("busy")
@@ -65,12 +67,14 @@ class FrameworkTransport:
             routing_model = payload.get("routing", {}).get("model")
         except (ValueError, KeyError, TypeError, AttributeError):
             return PolicyProposal.failure("malformed")
-        model_version = routing_model if isinstance(routing_model, str) else None
+        model_version = routing_model[:MAX_MODEL_CHARS] if isinstance(routing_model, str) else None
         if isinstance(answer, str):
+            if len(answer) > MAX_ACTION_CHARS:
+                return PolicyProposal.failure("malformed")
             return PolicyProposal(action=answer, confidence=None, provider="framework", model_version=model_version)
         if isinstance(answer, dict):
             choice = answer.get("choice", answer.get("value"))
-            if not isinstance(choice, str):
+            if not isinstance(choice, str) or len(choice) > MAX_ACTION_CHARS:
                 return PolicyProposal.failure("malformed")
             probabilities = answer.get("probabilities")
             confidence = probabilities.get(choice) if isinstance(probabilities, dict) and isinstance(probabilities.get(choice), (int, float)) else None

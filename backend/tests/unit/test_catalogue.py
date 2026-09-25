@@ -91,3 +91,17 @@ def test_catalogue_covers_every_topic_and_no_word_problems():
     assert set(TOPICS) == {skill.topic for skill in CATALOGUE.values()}
     assert len(CATALOGUE) >= 40
     assert all(set(supported_bands([topic])) for topic in TOPICS)
+
+
+def test_missing_operator_tasks_have_exactly_one_valid_operator():
+    from mental_math.game.catalogue import missing_operator
+    import random
+
+    rng = random.Random(2026)
+    for band in (1, 3, 4):
+        offered = 3 if band == 4 else 2
+        for _ in range(5000):
+            problem = missing_operator(rng, band)
+            a, b, result = problem.operand_a, problem.operand_b, problem.prompt["result"]
+            candidates = [a + b, a - b, a * b][:offered]
+            assert candidates.count(result) == 1 and candidates.index(result) == problem.correct_answer, (a, b, result)

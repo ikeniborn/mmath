@@ -49,6 +49,10 @@ def test_caddyfile_routes_api_before_spa_fallback_and_hides_internal_paths():
     caddyfile = (REPO / "deploy" / "Caddyfile").read_text()
     assert caddyfile.index("handle /api/*") < caddyfile.index("try_files")
     assert "/health" not in caddyfile and "/internal" not in caddyfile
+    # forwarded addresses are trusted only from the configured proxy; the default trusts loopback only
+    assert "trusted_proxies static {$MMATH_TRUSTED_PROXIES:127.0.0.1}" in caddyfile and "client_ip_headers X-Forwarded-For" in caddyfile
+    public_overlay = (REPO / "deploy" / "compose.public.yaml").read_text()
+    assert "MMATH_TRUSTED_PROXIES: ${MMATH_TRUSTED_PROXIES:?" in public_overlay
 
 
 def test_compose_publishes_no_database_or_api_port_and_uses_external_services():

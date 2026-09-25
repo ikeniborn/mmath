@@ -214,20 +214,24 @@ def odd_even(rng: random.Random, band: int) -> GeneratedProblem:
 
 def missing_operator(rng: random.Random, band: int) -> GeneratedProblem:
     ops = ["addition", "subtraction"] if band <= 3 else ["addition", "subtraction", "multiplication"]
-    op = rng.choice(ops)
     limit = {1: 10, 3: 20, 4: 50}[band]
-    if op == "addition":
-        a = rng.randint(1, limit - 1)
-        b = rng.randint(1, limit - a)
-        result = a + b
-    elif op == "subtraction":
-        a = rng.randint(2, limit)
-        b = rng.randint(1, a - 1)
-        result = a - b
-    else:
-        a = rng.randint(2, 7)
-        b = rng.randint(2, min(7, limit // a))
-        result = a * b
+    while True:
+        op = rng.choice(ops)
+        if op == "addition":
+            a = rng.randint(1, limit - 1)
+            b = rng.randint(1, limit - a)
+            result = a + b
+        elif op == "subtraction":
+            a = rng.randint(2, limit)
+            b = rng.randint(1, a - 1)
+            result = a - b
+        else:
+            a = rng.randint(2, 7)
+            b = rng.randint(2, min(7, limit // a))
+            result = a * b
+        # Exactly one offered operator may produce the result (2 + 2 = 2 x 2 would grade a right answer wrong).
+        if sum(value == result for value in [a + b, a - b, a * b][: len(ops)]) == 1:
+            break
     return GeneratedProblem(skill="", band=0, operation=op, operand_a=a, operand_b=b, correct_answer={"addition": 0, "subtraction": 1, "multiplication": 2}[op], kind="operator", prompt={"result": result})
 
 

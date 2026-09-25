@@ -13,6 +13,8 @@ from mental_math.accounts.service import current_session, require_account
 from mental_math.db import get_db
 
 router = APIRouter(prefix="/api/v1/auth", tags=["accounts"])
+THROTTLE_FAILURES = 5
+THROTTLE_MINUTES = 15
 
 
 def ensure_csrf(request: Request, session: AuthSession | None = None) -> None:
@@ -27,6 +29,21 @@ def ensure_csrf(request: Request, session: AuthSession | None = None) -> None:
 
 def session_cookie(response: Response, token: str, request: Request) -> None:
     response.set_cookie("mmath_session", token, max_age=int(SESSION_LIFETIME.total_seconds()), secure=request.app.state.settings.mode == "public", httponly=True, samesite="lax", path="/")
+
+
+def csrf_cookie(response: Response, csrf: str, request: Request) -> None:
+    # Same lifetime as the session cookie: a browser restart must not drop the token and force a re-login.
+    response.set_cookie("mmath_auth_csrf", csrf, max_age=int(SESSION_LIFETIME.total_seconds()), secure=request.app.state.settings.mode == "public", httponly=True, samesite="lax", path="/")
+
+
+def client_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+async def throttled(db: AsyncSession, email: str, ip: str) -> bool:
+    cutoff = now() - timedelta(minutes=THROTTLE_MINUTES)
+    failures = await db.scalar(select(func.count()).select_from(LoginFailure).where(LoginFailure.email == email, LoginFailure.ip_address == ip, LoginFailure.occurred_at > cutoff))
+    return failures >= THROTTLE_FAILURES
 
 
 async def issue_session(db: AsyncSession, account: Account, response: Response, request: Request) -> str:
@@ -61,7 +78,7 @@ async def register(body: Credentials, request: Request, response: Response, db: 
     db.add(account)
     await db.flush()
     csrf = await issue_session(db, account, response, request)
-    response.set_cookie("mmath_auth_csrf", csrf, secure=request.app.state.settings.mode == "public", httponly=True, samesite="lax", path="/")
+    csrf_cookie(response, csrf, request)
     return {"email": email, "csrf_token": csrf}
 
 
@@ -69,10 +86,8 @@ async def register(body: Credentials, request: Request, response: Response, db: 
 async def login(body: Credentials, request: Request, response: Response, db: AsyncSession = Depends(get_db, scope="function")):
     ensure_csrf(request)
     email = str(body.email).lower()
-    ip = request.client.host if request.client else "unknown"
-    cutoff = now() - timedelta(minutes=15)
-    failures = await db.scalar(select(func.count()).select_from(LoginFailure).where(LoginFailure.email == email, LoginFailure.ip_address == ip, LoginFailure.occurred_at > cutoff))
-    if failures >= 5:
+    ip = client_ip(request)
+    if await throttled(db, email, ip):
         raise HTTPException(429, detail={"code": "login_throttled"})
     account = await db.scalar(select(Account).where(Account.email == email))
     if account is None or not verify_password(account.password_hash, body.password):
@@ -83,7 +98,7 @@ async def login(body: Credentials, request: Request, response: Response, db: Asy
     if old:
         old.revoked_at = now()
     csrf = await issue_session(db, account, response, request)
-    response.set_cookie("mmath_auth_csrf", csrf, secure=request.app.state.settings.mode == "public", httponly=True, samesite="lax", path="/")
+    csrf_cookie(response, csrf, request)
     return {"email": email, "csrf_token": csrf}
 
 
@@ -105,6 +120,11 @@ async def confirm_password(body: PasswordConfirmation, request: Request, db: Asy
         raise HTTPException(401, detail={"code": "session_expired"})
     ensure_csrf(request, session)
     account = await require_account(request, db)
+    ip = client_ip(request)
+    if await throttled(db, account.email, ip):  # shares the login counter: a device holder cannot guess at argon2 speed
+        raise HTTPException(429, detail={"code": "login_throttled"})
     if not verify_password(account.password_hash, body.password):
-        raise HTTPException(403, detail={"code": "invalid_password"})
+        db.add(LoginFailure(email=account.email, ip_address=ip))
+        return JSONResponse({"detail": {"code": "invalid_password"}}, status_code=403)  # a raised exception would roll the failure row back
+    await db.execute(delete(LoginFailure).where(LoginFailure.email == account.email, LoginFailure.ip_address == ip))
     session.confirmed_at = now()

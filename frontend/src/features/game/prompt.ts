@@ -9,7 +9,9 @@ export type Translate = (key: Key, params?: Record<string, string | number>) => 
 
 /** Display parts of a task: strings plus one `null` slot where the child's answer goes (numeric kinds only). */
 export function promptParts(problem: PublicProblem, t: Translate): (string | null)[] {
-  const { operand_a: a, operand_b: b, kind, prompt } = problem;
+  const { kind, prompt } = problem;
+  const a = problem.operand_a ?? 0;  // null only for the blanked operand of a missing task, which is never rendered
+  const b = problem.operand_b ?? 0;
   const op = OPERATOR[problem.operation] ?? '+';
   if (kind === 'missing') {
     const result = String(prompt?.result ?? '');
@@ -24,8 +26,8 @@ export function promptParts(problem: PublicProblem, t: Translate): (string | nul
   if (kind === 'compare') return [`${prompt?.left} ? ${prompt?.right}`];
   if (kind === 'parity') return [t('prompt.parity', { n: Number(prompt?.value) })];
   if (kind === 'operator') return [`${a} ? ${b} = ${prompt?.result}`];
-  if (problem.operation === 'remainder') return [t('prompt.remainder', { a, b })];
-  if (prompt?.remainder) return [t('prompt.quotient', { a, b })];
+  if (problem.operation === 'remainder') return [`${t('prompt.remainder', { a, b })} `, null];
+  if (prompt?.remainder) return [`${t('prompt.quotient', { a, b })} `, null];
   return [`${a} ${op} ${b} = `, null];
 }
 

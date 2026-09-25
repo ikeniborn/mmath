@@ -15,7 +15,7 @@ config = context.config
 database_url = os.environ.get("MMATH_DATABASE_URL")
 if not database_url:
     raise RuntimeError("MMATH_DATABASE_URL is required")
-config.set_main_option("sqlalchemy.url", database_url)
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))  # ConfigParser interpolates %; keep %40 etc. intact
 
 
 def run_migrations_offline():

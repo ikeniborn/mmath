@@ -351,7 +351,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "counters" | "ten_frame" | "number_line" | "groups" | "pairs";
+            kind: "counters" | "ten_frame" | "number_line" | "groups" | "pairs" | "target";
             /** Operand A */
             operand_a: number;
             /** Operand B */
@@ -484,9 +484,9 @@ export interface components {
              */
             kind: "result" | "missing" | "chain" | "sequence" | "compare" | "parity" | "operator";
             /** Operand A */
-            operand_a: number;
+            operand_a: number | null;
             /** Operand B */
-            operand_b: number;
+            operand_b: number | null;
             /** Operation */
             operation: string;
             /** Ordinal */

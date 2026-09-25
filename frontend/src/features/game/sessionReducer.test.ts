@@ -28,3 +28,10 @@ test('digits are ignored outside the answer phase and score is never updated opt
   expect(gameReducer(submitting, { type: 'digit', digit: '1' }).entry).toBe('');
   expect(submitting.snapshot?.correct_count).toBe(0);
 });
+
+
+test('four digits can be typed so 1000 is answerable, the fifth is dropped', () => {
+  let state = gameReducer(initialState, { type: 'snapshot', snapshot: base });
+  for (const digit of ['1', '0', '0', '0', '0']) state = gameReducer(state, { type: 'digit', digit });
+  expect(state.entry).toBe('1000');
+});

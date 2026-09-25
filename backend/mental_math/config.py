@@ -37,6 +37,8 @@ class Settings:
         framework_url = os.environ.get("MMATH_FRAMEWORK_URL") or None
         if policy_mode in {"shadow", "active"} and not framework_url:
             raise RuntimeError("MMATH_FRAMEWORK_URL is required for shadow and active policy modes")
+        if framework_url and not framework_url.startswith(("http://", "https://")):
+            raise RuntimeError("MMATH_FRAMEWORK_URL must start with http:// or https://")
         threshold: float | None = None
         authorization: str | None = None
         if policy_mode == "active":

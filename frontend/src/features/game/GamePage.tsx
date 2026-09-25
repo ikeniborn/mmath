@@ -55,7 +55,8 @@ export default function GamePage({ players }: { players: Player[] }) {
         clearPending();
         dispatch({ type: 'snapshot', snapshot: cause.detail.snapshot as SessionSnapshot });
         setMessage(t('game.reconciled'));
-      } else if (cause instanceof ApiError && cause.code === 'submission_conflict') {
+      } else if (cause instanceof ApiError && cause.code !== 'request_failed') {
+        // A typed refusal (submission_conflict, session_expired, invalid_csrf, validation) will not change on retry.
         clearPending();
         fail(cause);
       } else {

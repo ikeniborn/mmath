@@ -38,6 +38,14 @@ export default function Hint({ hint, theme }: { hint: HintView; theme: Theme }) 
   }
   const step = hint.scale > 100 ? 100 : hint.scale > 20 ? 5 : 1;
   const ticks = Array.from({ length: hint.scale / step + 1 }, (_, index) => index * step);
+  if (hint.kind === 'target') {
+    // From a to b (count the gap), or jumps of a up to b for multiplication and division. The gap itself is never written.
+    const jumps = hint.operation === 'multiplication' || hint.operation === 'division' || hint.operation === 'remainder';
+    return <div className={styles.hint} role="img" aria-label={t(jumps ? 'hint.targetJumps' : 'hint.target', params)}>
+      <div className={styles.line}>{ticks.map(tick => <span key={tick} className={`${styles.tick} ${tick === hint.operand_a || tick === hint.operand_b ? styles.start : ''}`}>{tick}</span>)}</div>
+      <p className={styles.jump}>{t(jumps ? 'hint.targetJumpsText' : 'hint.targetText', params)}</p>
+    </div>;
+  }
   const direction = t(hint.operation === 'subtraction' ? 'hint.back' : 'hint.forward');
   return <div className={styles.hint} role="img" aria-label={t('hint.line', { ...params, direction })}>
     <div className={styles.line}>{ticks.map(tick => <span key={tick} className={`${styles.tick} ${tick === hint.operand_a ? styles.start : ''}`}>{tick}</span>)}</div>

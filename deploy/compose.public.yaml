@@ -5,6 +5,8 @@ services:
     environment:
       MMATH_MODE: public
   web:
+    environment:
+      MMATH_TRUSTED_PROXIES: ${MMATH_TRUSTED_PROXIES:?Set the CIDR of the external Traefik network so client addresses survive to the API}
     networks:
       default: {}
       edge:

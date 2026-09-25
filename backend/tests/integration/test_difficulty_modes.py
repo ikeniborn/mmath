@@ -143,3 +143,20 @@ async def test_progress_lists_sessions_newest_first_with_pagination(family, less
     page_two = (await family.get(f"/players/{family.player_id}/progress?limit=1&offset=1")).json()
     assert [row["id"] for row in page_two["sessions"]] == [lesson.session_id]
     assert page_two["sessions"][0]["state"] == "finished"
+
+
+@pytest.mark.asyncio
+async def test_single_eligible_skill_never_advertises_switch(app, family):
+    from sqlalchemy import select
+
+    from mental_math.game.models import PolicyDecision
+
+    await configure(family, topics=["division"], mode="fixed", difficulty_band=1)
+    session = (await family.post("/sessions", {"player_id": family.player_id})).json()
+    first_skill = session["current_problem"]["skill"]
+    session = await play(family, session, correct=True, count=4)
+    assert session["current_problem"]["skill"] == first_skill
+    async with app.state.session_factory() as db:
+        rows = (await db.scalars(select(PolicyDecision).order_by(PolicyDecision.created_at))).all()
+    assert len(rows) == 4
+    assert all("switch" not in row.allowed_actions and row.applied_action != "switch" and row.state["other_skills"] == 0 for row in rows)

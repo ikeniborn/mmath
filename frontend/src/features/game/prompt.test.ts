@@ -12,7 +12,7 @@ test('prompts put the answer slot where the blank is and never include the answe
   expect(promptParts({ ...base, operation: 'addition', operand_a: 8, operand_b: 5, kind: 'chain', prompt: { terms: [8, 5, -3] } } as PublicProblem, t)).toEqual(['8 + 5 − 3 = ', null]);
   expect(promptParts({ ...base, operation: 'addition', operand_a: 15, operand_b: 5, kind: 'sequence', prompt: { terms: [5, 10, 15], step: 5 } } as PublicProblem, t)).toEqual(['5, 10, 15, ', null]);
   expect(promptParts({ ...base, operation: 'compare', operand_a: 7, operand_b: 8, kind: 'compare', prompt: { left: '3 + 4', right: '8' } } as PublicProblem, t)).toEqual(['3 + 4 ? 8']);
-  expect(promptParts({ ...base, operation: 'remainder', operand_a: 74, operand_b: 9, kind: 'result', prompt: null } as PublicProblem, t)).toEqual(['74 ÷ 9 — какой остаток?']);
+  expect(promptParts({ ...base, operation: 'remainder', operand_a: 74, operand_b: 9, kind: 'result', prompt: null } as PublicProblem, t)).toEqual(['74 ÷ 9 — какой остаток? ', null]);
 });
 
 test('choice kinds expose their options and feedback labels', () => {

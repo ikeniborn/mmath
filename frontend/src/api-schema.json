@@ -160,7 +160,8 @@
               "ten_frame",
               "number_line",
               "groups",
-              "pairs"
+              "pairs",
+              "target"
             ],
             "title": "Kind",
             "type": "string"
@@ -586,12 +587,26 @@
             "type": "string"
           },
           "operand_a": {
-            "title": "Operand A",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operand A"
           },
           "operand_b": {
-            "title": "Operand B",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operand B"
           },
           "operation": {
             "title": "Operation",

@@ -36,3 +36,27 @@ def test_json_logs_redact_secret_fields_and_values(caplog):
     assert payload["password"] == "[redacted]" and payload["authorization"] == "[redacted]" and payload["cookie"] == "[redacted]"
     assert payload["database_url"] == "[redacted]" and payload["player"] == "p-1"
     assert payload["level"] == "INFO" and payload["logger"] == "mental_math"
+
+
+@pytest.mark.asyncio
+async def test_unhandled_exception_is_counted_and_logged_as_500():
+    from mental_math.main import create_app
+
+    app = create_app()
+
+    @app.get("/api/v1/_crash")
+    async def crash():
+        raise RuntimeError("boom")
+
+    records: list[logging.LogRecord] = []
+    handler = logging.Handler()
+    handler.emit = records.append  # the app logger does not propagate to caplog
+    app.state.logger.addHandler(handler)
+    before = metrics.snapshot()["requests_total"].get(("/api/v1/_crash", "5xx"), 0)
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app, raise_app_exceptions=False), base_url="http://test") as client:
+            assert (await client.get("/api/v1/_crash")).status_code == 500
+    finally:
+        app.state.logger.removeHandler(handler)
+    assert metrics.snapshot()["requests_total"].get(("/api/v1/_crash", "5xx"), 0) == before + 1
+    assert any(getattr(record, "status", None) == 500 and getattr(record, "route", None) == "/api/v1/_crash" for record in records)
