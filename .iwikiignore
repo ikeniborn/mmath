@@ -1,0 +1,7 @@
+.agents/
+.claude/
+.codex/
+.superpowers/
+.venv-passport2-ocr/
+docs/superpowers/
+docs/TODO.md
