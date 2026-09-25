@@ -47,3 +47,5 @@ fieldset { border: 2px solid #d3dfdd; border-radius: 10px; }
 .progress caption { text-align: left; font-weight: 700; padding-bottom: 8px; }
 .sessions { list-style: none; padding: 0; display: grid; gap: 10px; }
 .sessions li { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.auth-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.lang { min-height: 40px; }

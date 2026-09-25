@@ -1,13 +1,18 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, ApiError, type Player } from '../../api';
+import { useT } from '../../i18n';
+import ThemeSelect from './ThemeSelect';
+
+const TOPICS = ['addition', 'subtraction', 'multiplication'] as const;
 
 export default function PlayerSettings({ players, onChange }: { players: Player[]; onChange: () => Promise<void> }) {
+  const { t, name } = useT();
   const { id } = useParams();
   const player = players.find(item => item.id === id);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
-  if (!player) return <section><h2>Профиль не найден</h2><Link to="/">Назад</Link></section>;
+  if (!player) return <section><h2>{t('notFound.title')}</h2><Link to="/">{t('notFound.back')}</Link></section>;
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!player) return;
@@ -19,8 +24,8 @@ export default function PlayerSettings({ players, onChange }: { players: Player[
       await onChange(); setSaved(true);
     } catch (cause) {
       const bands = cause instanceof ApiError && cause.code === 'unsupported_difficulty' ? (cause.detail.supported_bands as number[] | undefined) : undefined;
-      setError(bands ? `Для выбранных тем фиксированный уровень должен быть одним из: ${bands.join(', ')}.` : 'Настройки не сохранены. Проверьте пароль и выберите хотя бы одну тему.');
+      setError(bands ? t('settings.unsupported', { bands: bands.join(', ') }) : t('settings.error'));
     }
   }
-  return <section className="settings"><Link to="/">← К выбору ребёнка</Link><h2>Настройки: {player.name}</h2><form className="card" onSubmit={save}><label>Имя<input name="name" defaultValue={player.name} required maxLength={40} /></label><label>Возраст<select name="age" defaultValue={player.age}>{[5,6,7,8,9,10].map(age => <option key={age}>{age}</option>)}</select></label><fieldset><legend>Темы</legend>{([['addition','Сложение'],['subtraction','Вычитание'],['multiplication','Умножение']] as const).map(([value,label]) => <label className="check" key={value}><input type="checkbox" name="topics" value={value} defaultChecked={player.topics.includes(value)} />{label}</label>)}</fieldset><label>Сложность<select name="mode" defaultValue={player.mode}><option value="automatic">Автоматически</option><option value="fixed">Фиксированная</option></select></label><label>Начальный уровень<select name="difficulty_band" defaultValue={player.difficulty_band ?? 0}>{[0,1,2,3,4].map(band => <option key={band} value={band}>{band}</option>)}</select></label><label>Оформление<select name="theme" defaultValue={player.theme}><option value="flowers">Цветы</option><option value="dolls">Куклы</option><option value="cars">Машинки</option><option value="construction">Стройтехника</option></select></label><label>Длительность занятия<select name="session_minutes" defaultValue={player.session_minutes}><option value="5">5 минут</option><option value="10">10 минут</option><option value="15">15 минут</option></select></label><label>Пароль родителя для сохранения<input name="password" type="password" autoComplete="current-password" required /></label>{error && <p role="alert">{error}</p>}{saved && <p role="status">Настройки сохранены</p>}<button type="submit">Сохранить</button></form></section>;
+  return <section className="settings"><Link to="/">{t('settings.back')}</Link><h2>{t('settings.title', { name: player.name })}</h2><form className="card" onSubmit={save}><label>{t('picker.name')}<input name="name" defaultValue={player.name} required maxLength={40} /></label><label>{t('picker.age')}<select name="age" defaultValue={player.age}>{[5,6,7,8,9,10].map(age => <option key={age}>{age}</option>)}</select></label><fieldset><legend>{t('settings.topics')}</legend>{TOPICS.map(value => <label className="check" key={value}><input type="checkbox" name="topics" value={value} defaultChecked={player.topics.includes(value)} />{name('topic', value)}</label>)}</fieldset><label>{t('settings.mode')}<select name="mode" defaultValue={player.mode}><option value="automatic">{t('settings.auto')}</option><option value="fixed">{t('settings.fixed')}</option></select></label><label>{t('settings.band')}<select name="difficulty_band" defaultValue={player.difficulty_band ?? 0}>{[0,1,2,3,4].map(band => <option key={band} value={band}>{band}</option>)}</select></label><ThemeSelect defaultValue={player.theme} /><label>{t('settings.minutes')}<select name="session_minutes" defaultValue={player.session_minutes}>{[5, 10, 15].map(minutes => <option key={minutes} value={minutes}>{t('settings.minutesValue', { n: minutes })}</option>)}</select></label><label>{t('settings.password')}<input name="password" type="password" autoComplete="current-password" required /></label>{error && <p role="alert">{error}</p>}{saved && <p role="status">{t('settings.saved')}</p>}<button type="submit">{t('settings.save')}</button></form></section>;
 }

@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { api, bootstrap, clearCsrf, type Player, type Session } from './api';
 import AccountPage from './features/accounts/AccountPage';
-import PlayerPicker from './features/players/PlayerPicker';
-import PlayerSettings from './features/players/PlayerSettings';
 import ChildHome from './features/game/ChildHome';
 import GamePage from './features/game/GamePage';
-import ProgressPage from './features/progress/ProgressPage';
 import { clearPending } from './features/game/pendingSubmission';
+import PlayerPicker from './features/players/PlayerPicker';
+import PlayerSettings from './features/players/PlayerSettings';
+import ProgressPage from './features/progress/ProgressPage';
+import { LangToggle, useT } from './i18n';
 
 export default function App() {
+  const { t } = useT();
   const [session, setSession] = useState<Session | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(false);
 
   async function refresh() {
     const next = await bootstrap();
@@ -20,17 +22,17 @@ export default function App() {
     setPlayers(next.email ? await api<Player[]>('/players') : []);
   }
 
-  useEffect(() => { refresh().catch(() => setError('Нет соединения с сервером. Попробуйте позже.')); }, []);
+  useEffect(() => { refresh().catch(() => setError(true)); }, []);
   async function logout() {
     await api('/auth/logout', 'POST');
     clearCsrf();
     clearPending();
     await refresh();
   }
-  if (error) return <main><h1>Считай легко</h1><p role="alert">{error}</p><button onClick={() => refresh().catch(() => {})}>Повторить</button></main>;
-  if (!session) return <main><h1>Считай легко</h1><p>Загрузка…</p></main>;
+  if (error) return <main><h1>{t('app.title')}</h1><p role="alert">{t('app.offline')}</p><button onClick={() => refresh().catch(() => {})}>{t('app.retry')}</button></main>;
+  if (!session) return <main><h1>{t('app.title')}</h1><p>{t('app.loading')}</p></main>;
   if (!session.email) return <AccountPage onAuthenticated={refresh} />;
-  return <main><header><h1>Считай легко</h1><div className="account"><span>{session.email}</span><button onClick={logout}>Выйти</button></div></header><Routes>
+  return <main><header><h1>{t('app.title')}</h1><div className="account"><span>{session.email}</span><LangToggle /><button onClick={logout}>{t('app.logout')}</button></div></header><Routes>
     <Route path="/" element={<PlayerPicker players={players} onChange={refresh} />} />
     <Route path="/children/:id/settings" element={<PlayerSettings players={players} onChange={refresh} />} />
     <Route path="/children/:id" element={<ChildHome players={players} />} />

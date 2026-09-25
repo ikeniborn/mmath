@@ -15,6 +15,7 @@ answer.
 | Child navigation, visual hints, foreground time limits, exact resume across tabs and reloads | done |
 | Skill catalogue (addition/subtraction 0–4, doubles, near-doubles, make-ten, ×2, ×3), mastery, automatic and fixed difficulty, progress page | done |
 | Visual themes per child profile: flowers, dolls, cars, construction machinery (hint counters use the chosen icons) | done |
+| Russian and English interface: detected from the browser, switchable in the header, remembered per browser | done |
 | Public Docker release, PWA, GPU policy | planned |
 
 ## Stack
