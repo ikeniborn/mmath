@@ -7,8 +7,11 @@ env_file="${MMATH_ENV_FILE:-/opt/mmath/.env}"
 src="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 [ -f "$env_file" ] || { echo "missing $env_file (copy deploy/.env.example, fill it, chmod 600)" >&2; exit 2; }
 
+# minipc ships the standalone Compose v2 binary (docker-compose); prefer the plugin when it exists.
+if docker compose version >/dev/null 2>&1; then compose_cmd="docker compose"; else compose_cmd="docker-compose"; fi
+
 compose() {
-  docker compose --project-directory "$src" --env-file "$env_file" -f "$src/compose.yaml" -f "$src/deploy/compose.lan-http.yaml" "$@"
+  $compose_cmd --project-directory "$src" --env-file "$env_file" -f "$src/compose.yaml" -f "$src/deploy/compose.lan-http.yaml" "$@"
 }
 
 case "${1:-}" in
