@@ -46,7 +46,8 @@ docker compose --env-file .env -f compose.yaml -f deploy/compose.public.yaml up 
 from there, so the per-address sign-in and password-confirmation throttle sees real clients instead of the
 proxy. Percent-encode special characters in the DSN password (`%40` for `@`); migrations accept them.
 LAN HTTP mode (`deploy/compose.lan-http.yaml`) publishes the edge on an explicit LAN or loopback address
-without TLS and trusts no forwarded headers. Details, health contract and recovery: `docs/runbooks/deployment.md`,
+without TLS and trusts no forwarded headers; `deploy/minipc-lan.sh up|ps|logs|down|config` wraps it on the
+minipc host with the env file kept outside the checkout (see the deployment runbook's host placement section). Details, health contract and recovery: `docs/runbooks/deployment.md`,
 `docs/runbooks/backup-restore.md`, `docs/runbooks/release-checklist.md`,
 `docs/runbooks/account-recovery.md`, `docs/runbooks/mobile-installation.md` (installing on phones; the app is connected-only and
 caches no child data).

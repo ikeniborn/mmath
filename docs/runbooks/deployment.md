@@ -34,7 +34,7 @@ Services on `minipc` live under `/opt/<service>`; mmath is `/opt/mmath`. The dir
 
 - `/opt/mmath/src` — git checkout of the deployed revision (`git -C /opt/mmath/src pull` to update, then rebuild).
 - `/opt/mmath/.env` — mode `600`, owner `ikeniborn`, outside the checkout; the DSN password lives only here. The tracked `deploy/.env.example` carries the placeholders.
-- Compose project name `mmath`; `deploy/minipc-lan.sh` wraps every compose command with this env file and the checkout as project directory (`up|ps|logs|down|config`).
+- Compose project name `mmath`; `deploy/minipc-lan.sh` wraps every compose command with this env file and the checkout as project directory (`up|ps|logs|down|config`). The host ships the standalone Compose v2 binary `docker-compose` (no `docker compose` plugin); the wrapper picks whichever exists, so the `docker compose ...` lines elsewhere in this runbook read as `docker-compose ...` on minipc.
 
 LAN deployment on this host (no public domain): `MMATH_MODE=lan-http`, `MMATH_ORIGIN=http://192.168.68.135:8080`, `MMATH_LAN_BIND=192.168.68.135`, `MMATH_LAN_PORT=8080` (port 80 belongs to the platform Traefik).
 
@@ -45,7 +45,9 @@ ALTER ROLE mmath NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS L
 GRANT external_login TO mmath;
 ```
 
-A probe from minipc with a wrong password must answer `password authentication failed`; `pg_hba.conf rejects connection ... no encryption` means the membership is missing.
+A probe from minipc with a wrong password must answer `password authentication failed`; `pg_hba.conf rejects connection ... no encryption` means the membership is missing. Passwords go into the DSN percent-encoded, or better contain only letters and digits: an unencoded `@` splits the URL and the migration job logs the fragment after it as an unresolvable host name.
+
+First LAN start on 2026-09-25: migrations applied, `/health/ready` answered `database ok, schema ok` inside the network, the edge served the SPA and `/api/v1/auth/session` while hiding `/health/*` and `/internal/*`, and a synthetic parent registered a child, played one addition task, finished the session and read the progress page through `http://192.168.68.135:8080`.
 
 ```bash
 /opt/mmath/src/deploy/minipc-lan.sh config
