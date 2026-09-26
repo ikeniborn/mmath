@@ -2,7 +2,7 @@ from uuid import UUID
 
 from uuid6 import uuid7
 
-from sqlalchemy import CheckConstraint, ForeignKey, JSON, String
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, JSON, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,6 +17,7 @@ class Player(Base):
         CheckConstraint("mode IN ('automatic', 'fixed')", name="player_mode_allowed"),
         CheckConstraint("session_minutes IN (5, 10, 15)", name="player_minutes_allowed"),
         CheckConstraint("theme IN ('flowers', 'dolls', 'cars', 'construction')", name="player_theme_allowed"),
+        CheckConstraint("round_tasks IN (6, 10)", name="player_round_tasks_allowed"),
     )
 
     id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid7)
@@ -29,3 +30,4 @@ class Player(Base):
     difficulty_band: Mapped[int]
     session_minutes: Mapped[int] = mapped_column(default=10)
     theme: Mapped[str] = mapped_column(String(20), default="flowers")
+    round_tasks: Mapped[int] = mapped_column(Integer, default=10, server_default="10")  # 6 for ages 4-5 unless the parent changes it

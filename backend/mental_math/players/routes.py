@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/v1/players", tags=["players"])
 
 
 def view(player: Player) -> dict:
-    return {"id": player.id, "name": player.name, "age": player.age, "avatar": player.avatar, "topics": player.topics, "mode": player.mode, "difficulty_band": player.difficulty_band, "session_minutes": player.session_minutes, "theme": player.theme}
+    return {"id": player.id, "name": player.name, "age": player.age, "avatar": player.avatar, "topics": player.topics, "mode": player.mode, "difficulty_band": player.difficulty_band, "session_minutes": player.session_minutes, "theme": player.theme, "round_tasks": player.round_tasks}
 
 
 def ensure_supported(topics: list[str], mode: str, band: int) -> None:

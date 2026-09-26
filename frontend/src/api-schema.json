@@ -161,7 +161,8 @@
               "number_line",
               "groups",
               "pairs",
-              "target"
+              "target",
+              "scene"
             ],
             "title": "Kind",
             "type": "string"
@@ -255,6 +256,21 @@
             "title": "Name",
             "type": "string"
           },
+          "round_tasks": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  10
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Round Tasks"
+          },
           "session_minutes": {
             "default": 10,
             "enum": [
@@ -277,26 +293,32 @@
             "type": "string"
           },
           "topics": {
-            "items": {
-              "enum": [
-                "addition",
-                "subtraction",
-                "counting",
-                "multiplication",
-                "division",
-                "comparison"
-              ],
-              "type": "string"
-            },
-            "minItems": 1,
-            "title": "Topics",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "addition",
+                    "subtraction",
+                    "counting",
+                    "multiplication",
+                    "division",
+                    "comparison",
+                    "early"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topics"
           }
         },
         "required": [
           "name",
-          "age",
-          "topics"
+          "age"
         ],
         "title": "PlayerInput",
         "type": "object"
@@ -374,6 +396,21 @@
             ],
             "title": "Name"
           },
+          "round_tasks": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  10
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Round Tasks"
+          },
           "session_minutes": {
             "anyOf": [
               {
@@ -417,7 +454,8 @@
                     "counting",
                     "multiplication",
                     "division",
-                    "comparison"
+                    "comparison",
+                    "early"
                   ],
                   "type": "string"
                 },
@@ -486,6 +524,21 @@
             "title": "Name",
             "type": "string"
           },
+          "round_tasks": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  10
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Round Tasks"
+          },
           "session_minutes": {
             "default": 10,
             "enum": [
@@ -508,26 +561,32 @@
             "type": "string"
           },
           "topics": {
-            "items": {
-              "enum": [
-                "addition",
-                "subtraction",
-                "counting",
-                "multiplication",
-                "division",
-                "comparison"
-              ],
-              "type": "string"
-            },
-            "minItems": 1,
-            "title": "Topics",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "addition",
+                    "subtraction",
+                    "counting",
+                    "multiplication",
+                    "division",
+                    "comparison",
+                    "early"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topics"
           }
         },
         "required": [
           "name",
           "age",
-          "topics",
           "id"
         ],
         "title": "PlayerView",
@@ -581,7 +640,15 @@
               "sequence",
               "compare",
               "parity",
-              "operator"
+              "operator",
+              "count",
+              "match",
+              "subitize",
+              "pattern",
+              "frame",
+              "order",
+              "share",
+              "pick"
             ],
             "title": "Kind",
             "type": "string"
@@ -723,6 +790,16 @@
             ],
             "title": "Mode",
             "type": "string"
+          },
+          "picture_mode": {
+            "default": false,
+            "title": "Picture Mode",
+            "type": "boolean"
+          },
+          "round_tasks": {
+            "default": 10,
+            "title": "Round Tasks",
+            "type": "integer"
           },
           "session_minutes": {
             "title": "Session Minutes",

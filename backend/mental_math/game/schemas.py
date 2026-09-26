@@ -57,6 +57,8 @@ class SessionSettings(BaseModel):
     difficulty_band: int
     topics: list[str]
     session_minutes: int
+    round_tasks: int = 10  # sessions started before the field existed keep ten tasks
+    picture_mode: bool = False  # true for ages 4-5: scenes, cards and speech instead of numerals
 
 
 class SessionSnapshot(BaseModel):

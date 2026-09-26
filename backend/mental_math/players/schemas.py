@@ -5,15 +5,20 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+Topic = Literal["addition", "subtraction", "counting", "multiplication", "division", "comparison", "early"]
+EARLY_DEFAULT_TOPICS = ["early", "addition", "subtraction", "counting"]
+
+
 class PlayerInput(BaseModel):
     name: str = Field(min_length=1, max_length=40)
     age: int = Field(ge=4, le=10)
     avatar: Literal["star", "rocket", "fox", "owl"] = "star"
-    topics: list[Literal["addition", "subtraction", "counting", "multiplication", "division", "comparison"]] = Field(min_length=1)
+    topics: list[Topic] | None = None  # None: resolved from the age below
     mode: Literal["automatic", "fixed"] = "automatic"
     difficulty_band: int | None = Field(default=None, ge=0, le=4)
     session_minutes: Literal[5, 10, 15] = 10
     theme: Literal["flowers", "dolls", "cars", "construction"] = "flowers"
+    round_tasks: Literal[6, 10] | None = None  # None: 6 for ages 4-5, 10 otherwise
 
     @field_validator("name")
     @classmethod
@@ -25,13 +30,19 @@ class PlayerInput(BaseModel):
 
     @field_validator("topics")
     @classmethod
-    def unique_topics(cls, value: list[str]) -> list[str]:
-        return list(dict.fromkeys(value))
+    def unique_topics(cls, value: list[str] | None) -> list[str] | None:
+        if value is not None and not value:
+            raise ValueError("At least one topic is required")
+        return None if value is None else list(dict.fromkeys(value))
 
     @model_validator(mode="after")
-    def resolve_band(self):
+    def resolve_defaults(self):
         if self.difficulty_band is None:
             self.difficulty_band = 0 if self.age <= 6 else 1 if self.age <= 8 else 2
+        if self.topics is None:
+            self.topics = list(EARLY_DEFAULT_TOPICS) if self.age <= 5 else ["addition"]
+        if self.round_tasks is None:
+            self.round_tasks = 6 if self.age <= 5 else 10
         return self
 
 
@@ -39,11 +50,12 @@ class PlayerPatch(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=40)
     age: int | None = Field(default=None, ge=4, le=10)
     avatar: Literal["star", "rocket", "fox", "owl"] | None = None
-    topics: list[Literal["addition", "subtraction", "counting", "multiplication", "division", "comparison"]] | None = Field(default=None, min_length=1)
+    topics: list[Topic] | None = Field(default=None, min_length=1)
     mode: Literal["automatic", "fixed"] | None = None
     difficulty_band: int | None = Field(default=None, ge=0, le=4)
     session_minutes: Literal[5, 10, 15] | None = None
     theme: Literal["flowers", "dolls", "cars", "construction"] | None = None
+    round_tasks: Literal[6, 10] | None = None
 
     @model_validator(mode="after")
     def validate_patch(self):
