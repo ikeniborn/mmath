@@ -161,7 +161,8 @@
               "number_line",
               "groups",
               "pairs",
-              "target"
+              "target",
+              "scene"
             ],
             "title": "Kind",
             "type": "string"
@@ -255,6 +256,21 @@
             "title": "Name",
             "type": "string"
           },
+          "round_tasks": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  10
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Round Tasks"
+          },
           "session_minutes": {
             "default": 10,
             "enum": [
@@ -277,26 +293,32 @@
             "type": "string"
           },
           "topics": {
-            "items": {
-              "enum": [
-                "addition",
-                "subtraction",
-                "counting",
-                "multiplication",
-                "division",
-                "comparison"
-              ],
-              "type": "string"
-            },
-            "minItems": 1,
-            "title": "Topics",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "addition",
+                    "subtraction",
+                    "counting",
+                    "multiplication",
+                    "division",
+                    "comparison",
+                    "early"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topics"
           }
         },
         "required": [
           "name",
-          "age",
-          "topics"
+          "age"
         ],
         "title": "PlayerInput",
         "type": "object"
@@ -374,6 +396,21 @@
             ],
             "title": "Name"
           },
+          "round_tasks": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  10
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Round Tasks"
+          },
           "session_minutes": {
             "anyOf": [
               {
@@ -417,7 +454,8 @@
                     "counting",
                     "multiplication",
                     "division",
-                    "comparison"
+                    "comparison",
+                    "early"
                   ],
                   "type": "string"
                 },
@@ -435,15 +473,13 @@
         "type": "object"
       },
       "PlayerView": {
+        "description": "Resolved profile: every default is filled in, so no field is nullable in the contract.",
         "properties": {
           "age": {
-            "maximum": 10.0,
-            "minimum": 4.0,
             "title": "Age",
             "type": "integer"
           },
           "avatar": {
-            "default": "star",
             "enum": [
               "star",
               "rocket",
@@ -454,17 +490,8 @@
             "type": "string"
           },
           "difficulty_band": {
-            "anyOf": [
-              {
-                "maximum": 4.0,
-                "minimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Difficulty Band"
+            "title": "Difficulty Band",
+            "type": "integer"
           },
           "id": {
             "format": "uuid",
@@ -472,7 +499,6 @@
             "type": "string"
           },
           "mode": {
-            "default": "automatic",
             "enum": [
               "automatic",
               "fixed"
@@ -481,13 +507,18 @@
             "type": "string"
           },
           "name": {
-            "maxLength": 40,
-            "minLength": 1,
             "title": "Name",
             "type": "string"
           },
+          "round_tasks": {
+            "enum": [
+              6,
+              10
+            ],
+            "title": "Round Tasks",
+            "type": "integer"
+          },
           "session_minutes": {
-            "default": 10,
             "enum": [
               5,
               10,
@@ -497,7 +528,6 @@
             "type": "integer"
           },
           "theme": {
-            "default": "flowers",
             "enum": [
               "flowers",
               "dolls",
@@ -515,26 +545,35 @@
                 "counting",
                 "multiplication",
                 "division",
-                "comparison"
+                "comparison",
+                "early"
               ],
               "type": "string"
             },
-            "minItems": 1,
             "title": "Topics",
             "type": "array"
           }
         },
         "required": [
+          "id",
           "name",
           "age",
+          "avatar",
           "topics",
-          "id"
+          "mode",
+          "difficulty_band",
+          "session_minutes",
+          "theme",
+          "round_tasks"
         ],
         "title": "PlayerView",
         "type": "object"
       },
       "ProgressView": {
         "properties": {
+          "rewards": {
+            "$ref": "#/components/schemas/RewardsView"
+          },
           "sessions": {
             "items": {
               "$ref": "#/components/schemas/SessionHistory"
@@ -557,7 +596,8 @@
         "required": [
           "skills",
           "sessions",
-          "total_sessions"
+          "total_sessions",
+          "rewards"
         ],
         "title": "ProgressView",
         "type": "object"
@@ -581,7 +621,15 @@
               "sequence",
               "compare",
               "parity",
-              "operator"
+              "operator",
+              "count",
+              "match",
+              "subitize",
+              "pattern",
+              "frame",
+              "order",
+              "share",
+              "pick"
             ],
             "title": "Kind",
             "type": "string"
@@ -645,6 +693,32 @@
           "prompt"
         ],
         "title": "PublicProblem",
+        "type": "object"
+      },
+      "RewardsView": {
+        "description": "`count` finished rounds with at least half answered; `latest` is the sticker code `<theme>-<1..8>` or null.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest"
+          }
+        },
+        "required": [
+          "count",
+          "latest"
+        ],
+        "title": "RewardsView",
         "type": "object"
       },
       "SessionHistory": {
@@ -723,6 +797,16 @@
             ],
             "title": "Mode",
             "type": "string"
+          },
+          "picture_mode": {
+            "default": false,
+            "title": "Picture Mode",
+            "type": "boolean"
+          },
+          "round_tasks": {
+            "default": 10,
+            "title": "Round Tasks",
+            "type": "integer"
           },
           "session_minutes": {
             "title": "Session Minutes",

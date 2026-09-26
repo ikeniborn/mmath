@@ -6,6 +6,7 @@ committed snapshot so a stale browser can reconcile instead of grading twice.
 
 import hashlib
 import json
+import random
 from datetime import timedelta
 from uuid import UUID
 
@@ -16,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from mental_math.accounts.security import now
 from mental_math.game.catalogue import CATALOGUE, eligible_pairs, generate, skills_for_topics
 from mental_math.game.constraints import band_bounds, next_skill, step_band
+from mental_math.game.early import answer_options
 from mental_math.game.hints import render_hint
 from mental_math.game.models import Attempt, LearningSession, PolicyDecision, Problem
 from mental_math.game.schemas import AttemptResult, Feedback, HintResult, PublicProblem, SessionSnapshot, SubmitAttempt
@@ -23,6 +25,7 @@ from mental_math.game.validator import grade
 from mental_math.observability import metrics
 from mental_math.players.models import Player
 from mental_math.players.service import owned_player
+from mental_math.policy.fallback import SWITCH_RUN
 from mental_math.policy.runtime import PolicyRuntime, resolve
 from mental_math.policy.service import state_payload
 from mental_math.policy.types import PolicyState
@@ -30,8 +33,12 @@ from mental_math.student.errors import classify
 from mental_math.student.models import PlayerSkill
 from mental_math.student.state import record_attempt
 
-TOTAL_PROBLEMS = 10
+DEFAULT_ROUND = 10  # sessions started before round_tasks existed
 TIMING_TOLERANCE = timedelta(seconds=5)
+
+
+def round_length(session: LearningSession) -> int:
+    return int(session.settings.get("round_tasks", DEFAULT_ROUND))
 
 
 def public_problem(problem: Problem | None) -> PublicProblem | None:
@@ -45,7 +52,7 @@ def public_problem(problem: Problem | None) -> PublicProblem | None:
 async def snapshot(db: AsyncSession, session: LearningSession) -> SessionSnapshot:
     current = await db.get(Problem, session.current_problem_id) if session.current_problem_id else None
     hint = render_hint(current) if current is not None and current.hinted_at is not None else None
-    return SessionSnapshot(id=session.id, player_id=session.player_id, version=session.version, state=session.state, phase=session.phase, current_problem=public_problem(current), feedback=Feedback(**session.feedback) if session.feedback else None, hint=hint, last_attempt_id=session.last_attempt_id, settings=session.settings, answered_count=session.answered_count, correct_count=session.correct_count, total_problems=TOTAL_PROBLEMS, active_ms=session.active_ms, time_limit_ms=time_limit_ms(session))
+    return SessionSnapshot(id=session.id, player_id=session.player_id, version=session.version, state=session.state, phase=session.phase, current_problem=public_problem(current), feedback=Feedback(**session.feedback) if session.feedback else None, hint=hint, last_attempt_id=session.last_attempt_id, settings=session.settings, answered_count=session.answered_count, correct_count=session.correct_count, total_problems=round_length(session), active_ms=session.active_ms, time_limit_ms=time_limit_ms(session))
 
 
 def time_limit_ms(session: LearningSession) -> int:
@@ -74,8 +81,18 @@ async def _automatic_bands(db: AsyncSession, player_id: UUID) -> dict[str, int]:
 async def _issue(db: AsyncSession, session: LearningSession, ordinal: int, *, current: str | None = None, action: str = "repeat") -> Problem:
     code, band = next_skill(session.settings, await _automatic_bands(db, session.player_id), current, action)
     session.skill_run = session.skill_run + 1 if code == current else 1
+    if session.settings.get("picture_mode"):
+        # Variety for ages 4-5: every task counts as a full run, so the rules switch skill after each correct answer
+        # and a six-task round shows five or six different game forms; the per-skill promotion streak is untouched.
+        session.skill_run = max(session.skill_run, SWITCH_RUN)
     generated = generate(code, session.id, ordinal, band)
-    problem = Problem(session_id=session.id, ordinal=ordinal, skill=generated.skill, band=generated.band, operation=generated.operation, operand_a=generated.operand_a, operand_b=generated.operand_b, correct_answer=generated.correct_answer, kind=generated.kind, prompt=generated.prompt)
+    prompt = generated.prompt
+    if session.settings.get("picture_mode") and generated.kind in {"result", "missing", "sequence"} and band <= 1:
+        # A 4-5-year-old answers by card: three unmarked values, the answer once, shuffled from the same seed family.
+        rng = random.Random(f"{session.id}:{ordinal}:{code}:{band}:options")
+        answer = generated.correct_answer
+        prompt = {**(prompt or {}), "options": answer_options(rng, answer, max(0, answer - 2), answer + 2)}
+    problem = Problem(session_id=session.id, ordinal=ordinal, skill=generated.skill, band=generated.band, operation=generated.operation, operand_a=generated.operand_a, operand_b=generated.operand_b, correct_answer=generated.correct_answer, kind=generated.kind, prompt=prompt)
     if action == "hint":
         problem.hinted_at = now()
     return problem
@@ -89,7 +106,7 @@ async def start_session(db: AsyncSession, account_id: UUID, player_id: UUID) -> 
         return await snapshot(db, existing), False
     if not skills_for_topics(list(player.topics)):
         raise HTTPException(422, detail={"code": "skill_unavailable", "supported": sorted({skill.topic for skill in CATALOGUE.values()})})
-    settings = {"mode": player.mode, "difficulty_band": player.difficulty_band, "topics": list(player.topics), "session_minutes": player.session_minutes}
+    settings = {"mode": player.mode, "difficulty_band": player.difficulty_band, "topics": list(player.topics), "session_minutes": player.session_minutes, "round_tasks": player.round_tasks, "picture_mode": player.age <= 5}
     session = LearningSession(player_id=player.id, settings=settings, state="active", phase="answer", version=1, answered_count=0, correct_count=0, active_ms=0, correct_streak=0, error_streak=0, skill_run=0)
     db.add(session)
     await db.flush()
@@ -170,7 +187,7 @@ async def submit_attempt(db: AsyncSession, account_id: UUID, session_id: UUID, c
     session.last_attempt_id = attempt.id
     session.phase = "feedback"
     session.pending_problem_id = None
-    if session.answered_count < TOTAL_PROBLEMS and session.active_ms < time_limit_ms(session):
+    if session.answered_count < round_length(session) and session.active_ms < time_limit_ms(session):
         await db.flush()
         pending = await _issue(db, session, problem.ordinal + 1, current=problem.skill, action=decision.applied_action)
         db.add(pending)

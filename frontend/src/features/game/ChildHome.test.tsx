@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { expect, test, vi } from 'vitest';
 import ChildHome from './ChildHome';
 
-const player = { id: 'p1', name: 'Маша', age: 7, avatar: 'star' as const, topics: ['addition' as const], mode: 'automatic' as const, difficulty_band: 1, session_minutes: 10 as const, theme: 'flowers' as const };
+const player = { id: 'p1', name: 'Маша', age: 7, avatar: 'star' as const, topics: ['addition' as const], mode: 'automatic' as const, difficulty_band: 1, session_minutes: 10 as const, theme: 'flowers' as const, round_tasks: 10 as const };
 
 test('child home offers Resume when an unfinished session exists and Start otherwise', async () => {
   const fetchMock = vi.fn().mockResolvedValueOnce(new Response(null, { status: 204 }));

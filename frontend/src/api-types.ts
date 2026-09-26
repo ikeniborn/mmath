@@ -351,7 +351,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "counters" | "ten_frame" | "number_line" | "groups" | "pairs" | "target";
+            kind: "counters" | "ten_frame" | "number_line" | "groups" | "pairs" | "target" | "scene";
             /** Operand A */
             operand_a: number;
             /** Operand B */
@@ -386,6 +386,8 @@ export interface components {
             mode: "automatic" | "fixed";
             /** Name */
             name: string;
+            /** Round Tasks */
+            round_tasks?: (6 | 10) | null;
             /**
              * Session Minutes
              * @default 10
@@ -399,7 +401,7 @@ export interface components {
              */
             theme: "flowers" | "dolls" | "cars" | "construction";
             /** Topics */
-            topics: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison")[];
+            topics?: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison" | "early")[] | null;
         };
         /** PlayerPatch */
         PlayerPatch: {
@@ -413,25 +415,29 @@ export interface components {
             mode?: ("automatic" | "fixed") | null;
             /** Name */
             name?: string | null;
+            /** Round Tasks */
+            round_tasks?: (6 | 10) | null;
             /** Session Minutes */
             session_minutes?: (5 | 10 | 15) | null;
             /** Theme */
             theme?: ("flowers" | "dolls" | "cars" | "construction") | null;
             /** Topics */
-            topics?: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison")[] | null;
+            topics?: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison" | "early")[] | null;
         };
-        /** PlayerView */
+        /**
+         * PlayerView
+         * @description Resolved profile: every default is filled in, so no field is nullable in the contract.
+         */
         PlayerView: {
             /** Age */
             age: number;
             /**
              * Avatar
-             * @default star
              * @enum {string}
              */
             avatar: "star" | "rocket" | "fox" | "owl";
             /** Difficulty Band */
-            difficulty_band?: number | null;
+            difficulty_band: number;
             /**
              * Id
              * Format: uuid
@@ -439,29 +445,32 @@ export interface components {
             id: string;
             /**
              * Mode
-             * @default automatic
              * @enum {string}
              */
             mode: "automatic" | "fixed";
             /** Name */
             name: string;
             /**
+             * Round Tasks
+             * @enum {integer}
+             */
+            round_tasks: 6 | 10;
+            /**
              * Session Minutes
-             * @default 10
              * @enum {integer}
              */
             session_minutes: 5 | 10 | 15;
             /**
              * Theme
-             * @default flowers
              * @enum {string}
              */
             theme: "flowers" | "dolls" | "cars" | "construction";
             /** Topics */
-            topics: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison")[];
+            topics: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison" | "early")[];
         };
         /** ProgressView */
         ProgressView: {
+            rewards: components["schemas"]["RewardsView"];
             /** Sessions */
             sessions: components["schemas"]["SessionHistory"][];
             /** Skills */
@@ -482,7 +491,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "result" | "missing" | "chain" | "sequence" | "compare" | "parity" | "operator";
+            kind: "result" | "missing" | "chain" | "sequence" | "compare" | "parity" | "operator" | "count" | "match" | "subitize" | "pattern" | "frame" | "order" | "share" | "pick";
             /** Operand A */
             operand_a: number | null;
             /** Operand B */
@@ -497,6 +506,16 @@ export interface components {
             } | null;
             /** Skill */
             skill: string;
+        };
+        /**
+         * RewardsView
+         * @description `count` finished rounds with at least half answered; `latest` is the sticker code `<theme>-<1..8>` or null.
+         */
+        RewardsView: {
+            /** Count */
+            count: number;
+            /** Latest */
+            latest: string | null;
         };
         /** SessionHistory */
         SessionHistory: {
@@ -537,6 +556,16 @@ export interface components {
              * @enum {string}
              */
             mode: "automatic" | "fixed";
+            /**
+             * Picture Mode
+             * @default false
+             */
+            picture_mode: boolean;
+            /**
+             * Round Tasks
+             * @default 10
+             */
+            round_tasks: number;
             /** Session Minutes */
             session_minutes: number;
             /** Topics */

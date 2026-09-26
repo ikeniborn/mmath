@@ -55,7 +55,7 @@ async def test_profile_change_does_not_rewrite_session_snapshot(family, lesson):
     assert (await family.post("/auth/confirm-password", {"password": "correct horse battery staple"})).status_code == 204
     assert (await family.patch(f"/players/{family.player_id}", {"mode": "fixed", "difficulty_band": 3})).status_code == 200
     snapshot = (await family.get(f"/sessions/{lesson.session_id}")).json()
-    assert snapshot["settings"] == {"mode": "automatic", "difficulty_band": 0, "topics": ["addition"], "session_minutes": 10}
+    assert snapshot["settings"] == {"mode": "automatic", "difficulty_band": 0, "topics": ["addition"], "session_minutes": 10, "round_tasks": 10, "picture_mode": False}
 
 
 @pytest.mark.asyncio

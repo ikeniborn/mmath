@@ -45,7 +45,7 @@ async def test_new_child_defaults_to_automatic_and_starts_at_the_profile_band(fa
 async def test_fixed_band_never_moves_but_mastery_still_updates(family):
     await configure(family, mode="fixed", difficulty_band=2)
     session = (await family.post("/sessions", {"player_id": family.player_id})).json()
-    assert session["settings"] == {"mode": "fixed", "difficulty_band": 2, "topics": ["addition"], "session_minutes": 10}
+    assert session["settings"] == {"mode": "fixed", "difficulty_band": 2, "topics": ["addition"], "session_minutes": 10, "round_tasks": 10, "picture_mode": False}
     session = await play(family, session, correct=True, count=6)
     assert session["current_problem"]["band"] == 2
     session = await play(family, session, correct=False, count=3)

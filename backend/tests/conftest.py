@@ -142,6 +142,25 @@ def solve(problem: dict) -> int:
         return prompt["value"] % 2
     if kind == "operator":
         return [a + b, a - b, a * b].index(prompt["result"])
+    if kind in {"count", "match", "subitize"}:
+        return len(prompt["items"])
+    if kind == "pattern":
+        seq = prompt["sequence"]
+        period = next(p for p in range(1, len(seq)) if all(seq[i] == seq[i - p] for i in range(p, len(seq))))
+        return seq[len(seq) - period]
+    if kind == "frame":
+        return prompt["size"] - prompt["filled"]
+    if kind == "order":
+        heights = prompt["heights"]
+        return int("".join(str(i + 1) for i in sorted(range(len(heights)), key=lambda i: heights[i])))
+    if kind == "share":
+        return prompt["total"] // prompt["friends"]
+    if kind == "pick":
+        items = prompt["items"]
+        if prompt["attribute"] == "shape":
+            return next(i for i, item in enumerate(items) if item["shape"] == prompt["target"])
+        pick = max if prompt["target"] == "largest" else min
+        return items.index(pick(items, key=lambda item: item["size"]))
     raise AssertionError(kind)
 
 
@@ -151,6 +170,8 @@ def wrong(problem: dict, answer: int) -> int:
         return -1 if answer != -1 else 1
     if problem["kind"] in {"parity", "operator"}:
         return (answer + 1) % 2 if problem["kind"] == "parity" else (answer + 1) % 3
+    if problem["kind"] in {"pattern", "pick", "order"}:
+        return answer + 1 if answer < 9 else answer - 1
     return answer + 100
 
 

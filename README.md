@@ -14,7 +14,8 @@ answer.
 | First durable lesson (sessions, addition tasks, idempotent answers, resume, finish) | done |
 | Child navigation, visual hints, foreground time limits, exact resume across tabs and reloads | done |
 | Skill catalogue (addition/subtraction 0–4, doubles, near-doubles, make-ten, ×2, ×3), mastery, automatic and fixed difficulty, progress page | done |
-| Research-based task set: 50 skills in six topics (addition, subtraction, counting, multiplication, division, comparison) with seven answer shapes | done |
+| Research-based task set: 59 skills in seven topics (addition, subtraction, counting, multiplication, division, comparison, little ones) with fifteen task kinds | done |
+| Picture mode for ages 4–5: nine early-numeracy games answered by tapping scenes and cards, spoken prompts, theme SVG objects, stickers, parent-chosen 6/10 tasks per round | done |
 | Visual themes per child profile: flowers, dolls, cars, construction machinery (hint counters use the chosen icons) | done |
 | Russian and English interface: detected from the browser, switchable in the header, remembered per browser | done |
 | Deployment behind the external Traefik edge and the platform PostgreSQL: one-shot migrations, readiness, metrics, redacted JSON logs, isolated deployment check, backup drill | done |
@@ -76,7 +77,7 @@ frontend/node_modules/.bin/openapi-typescript frontend/src/api-schema.json -o fr
 
 ## Task catalogue
 
-Six parent-selectable topics, 50 skills, bands 0–4 (within 5–10, within 10, bridging ten within 20, within
+Seven parent-selectable topics, 59 skills, bands 0–4 (within 5–10, within 10, bridging ten within 20, within
 20/50, within 100 or 1000 for scaled facts). Families follow the DfE ready-to-progress criteria (Years 1–4),
 the Russian grade 1–4 mental-arithmetic programme and soroban chain practice:
 
@@ -90,9 +91,14 @@ the Russian grade 1–4 mental-arithmetic programme and soroban chain practice:
   round numbers.
 - **Division**: halves, division facts 2–10, ÷10 and ÷100, two-digit ÷ one-digit, quotient and remainder.
 - **Comparison**: numbers and expressions with `<`, `=`, `>`.
+- **Little ones** (`early`, ages 4–5, bands 0–1 = within 5 / within 10): count the objects, make the same number,
+  quick look (a dice or domino scene hidden after 1.5 s), what comes next (AB, ABB, AAB, ABC patterns), how many
+  to five on a five/ten frame, order towers by height, share equally between friends, find the shape, largest or
+  smallest. Every prompt is a scene; the only field that may contain the answer is the unmarked, uniformly shuffled
+  `options` list of three values.
 
-Answer shapes: a number (result, missing operand, chain, next term, remainder) or a choice (sign, odd/even,
-operator). Every generator is deterministic per session and ordinal and is covered by per-band property tests.
+Answer shapes: a number (result, missing operand, chain, next term, remainder), a choice (sign, odd/even,
+operator) or a tap (count, match, subitize, pattern, frame, order, share, pick). Every generator is deterministic per session and ordinal and is covered by per-band property tests.
 Out of scope: word problems, rebuses, numbers above 1000 and timed flash display.
 
 ## Policy modes
@@ -111,6 +117,21 @@ recorded rollout decision; rollback is `rules` mode plus an API restart, see
 `docs/runbooks/active-policy-rollout.md`. Evidence export and offline evaluation:
 `docs/runbooks/policy-evaluation.md`.
 
+## Picture mode (ages 4–5)
+
+A profile aged 4 or 5 starts its sessions in picture mode (`session.settings.picture_mode`), decided at session
+start and never rewritten: the default topics are `early`, addition, subtraction and counting, the round is 6 tasks
+(`round_tasks`, the parent may choose 10), and the child never needs the keypad or the text. Numeric tasks at
+bands 0–1 arrive with three unmarked answer cards (`prompt.options`); compare draws two piles to tap plus a "same"
+card, odd/even draws pairs with Yes/No, neighbours are train carriages, a missing addend hides behind a garage,
+subtraction objects leave, addition fills a basket. In picture mode the skill switches after every correct answer, so a six-task round shows five or six
+different game forms; the per-skill promotion streak still needs five unhinted correct answers. Every task and its feedback is read aloud through the browser
+speech API (silent when no voice matches; a speaker button repeats it). Theme objects are hand-drawn inline SVGs
+(`frontend/src/assets/ASSETS.md`), the bundle stays under 160 KB gzip (`scripts/check_assets.py`). A finished
+round with at least half of its tasks answered earns a sticker `<theme>-<1..8>`, derived from the child's sessions
+(`GET /players/{id}/progress` → `rewards`), shown on the summary and on the child's home shelf. Children aged 6–10
+see exactly what they saw before.
+
 ## Difficulty rules
 
 Automatic mode (default) keeps one band per skill and child. Five correct unhinted answers in a row on a
@@ -118,8 +139,7 @@ skill raise that skill by one supported band; the streak belongs to the skill an
 session boundaries, a hinted answer resets it. Three errors in a row on a skill lower it, or expose a hint
 at the lowest band. Three correct answers on the same skill switch to the next enabled skill, and a new
 session resumes the rotation where the child stopped, so every skill of a topic is reached. A round is ten
-tasks; the summary offers "Once more!" to start the next round. Children aged 4–5 see the objects of
-their theme drawn with every small addition or subtraction task (within 10) before any hint. Fixed mode locks the band and may only
+tasks; the summary offers "Once more!" to start the next round. Children aged 4–5 play in picture mode (see below). Fixed mode locks the band and may only
 repeat, switch or recommend a hint; statistics and mastery still update. Mastery is
 `0.50 × recent accuracy + 0.30 × speed + 0.20 × consistency` over the last 20 attempts (formula
 `mastery-v1-10s`), unknown until the first attempt.

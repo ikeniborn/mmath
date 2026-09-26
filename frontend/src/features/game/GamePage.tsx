@@ -10,6 +10,8 @@ import TaskPicture from './TaskPicture';
 import { clearPending, loadPending, savePending, type PendingSubmission } from './pendingSubmission';
 import { gameReducer, initialState } from './sessionReducer';
 import ChoicePad from './ChoicePad';
+import EarlyTask, { hasEarlyInput } from './early/EarlyTask';
+import { spokenTask, useSpeech } from './early/useSpeech';
 import { choices, isChoice, promptParts } from './prompt';
 import { useT } from '../../i18n';
 
@@ -30,10 +32,11 @@ function useActiveTimer(problemId: string | undefined) {
 }
 
 export default function GamePage({ players }: { players: Player[] }) {
-  const { t, name } = useT();
+  const { t, name, lang } = useT();
   const { id = '' } = useParams();
   const player = players.find(item => item.id === id);
   const [state, dispatch] = useReducer(gameReducer, initialState);
+  const { speak, supported: canSpeak } = useSpeech(lang);
   const [message, setMessage] = useState('');
   const heading = useRef<HTMLHeadingElement>(null);
   const { snapshot, entry, status } = state;
@@ -78,6 +81,14 @@ export default function GamePage({ players }: { players: Player[] }) {
 
   useEffect(() => { if (player) void load(); }, [id, player?.id]);
   useEffect(() => { heading.current?.focus(); }, [snapshot?.phase, snapshot?.state, snapshot?.current_problem?.id]);
+  const pictureMode = Boolean(snapshot?.settings.picture_mode);
+  const spoken = snapshot?.current_problem && pictureMode ? spokenTask(promptParts(snapshot.current_problem, t, true), lang, expression => t('speak.expression', { expression })) : '';
+  // Picture mode reads every task and its feedback aloud; a child aged 4-5 does not read the prompt.
+  useEffect(() => {
+    if (!pictureMode || !snapshot || snapshot.state !== 'active') return;
+    if (snapshot.phase === 'answer') speak(spoken);
+    else if (snapshot.feedback) speak(t(snapshot.feedback.correct ? 'game.correct' : 'game.wrong'));
+  }, [pictureMode, snapshot?.phase, snapshot?.current_problem?.id, snapshot?.state]);
 
   if (!player) return <section><h2>{t('notFound.title')}</h2><Link to="/">{t('notFound.back')}</Link></section>;
 
@@ -114,25 +125,29 @@ export default function GamePage({ players }: { players: Player[] }) {
   if (snapshot.state === 'finished') return <SessionSummary player={player} snapshot={snapshot} headingRef={heading} onAgain={() => void load()} />;
 
   const problem = snapshot.current_problem;
-  const parts = problem ? promptParts(problem, t) : [];
   const choice = problem ? isChoice(problem) : false;
+  const picture = Boolean(snapshot.settings.picture_mode);  // ages 4-5: scenes and cards replace the keypad
+  const earlyInput = picture && problem !== null && hasEarlyInput(problem);
+  const pictureChoice = picture && problem !== null && (problem.kind === 'compare' || problem.kind === 'parity');  // the scene itself is the input
+  const parts = problem ? promptParts(problem, t, picture) : [];
   const expression = parts.map(part => part ?? '?').join('');
   const answering = snapshot.phase === 'answer';
   const shown = answering ? (entry || '?') : String(snapshot.feedback?.submitted_answer ?? '');
   return <section className="game" onKeyDown={event => {
-    if (!answering || status !== 'ready' || choice) return;
+    if (!answering || status !== 'ready' || choice || earlyInput || pictureChoice) return;
     if (/^[0-9]$/.test(event.key)) dispatch({ type: 'digit', digit: event.key });
     else if (event.key === 'Backspace') dispatch({ type: 'erase' });
     else if (event.key === 'Enter') void submit();
   }}>
     <h2 ref={heading} tabIndex={-1}>{answering ? t('game.task', { n: problem?.ordinal ?? 0, total: snapshot.total_problems }) : (snapshot.feedback?.correct ? t('game.correct') : t('game.wrong'))}</h2>
     {problem && <p className="band">{t('game.level', { skill: name('skill', problem.skill), band: problem.band })}</p>}
-    {problem && <TaskPicture problem={problem} age={player.age} theme={player.theme} />}
+    {problem && <TaskPicture problem={problem} theme={player.theme} picture={picture} disabled={status !== 'ready' || !answering} onAnswer={submitValue} />}
     <p className="expression" aria-label={t('game.expression', { expression })}>{parts.map((part, index) => part === null ? <span key={index} className="answer">{shown}</span> : <span key={index}>{part}</span>)}</p>
     {answering && snapshot.hint && <Hint hint={snapshot.hint} theme={player.theme} />}
     {answering ? <>
       <p role="status" aria-live="polite">{message}</p>
-      {choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
+      {earlyInput && problem ? <EarlyTask problem={problem} theme={player.theme} disabled={status !== 'ready'} onAnswer={submitValue} hinted={Boolean(snapshot.hint)} /> : pictureChoice ? null : choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
+      {picture && canSpeak && <button type="button" className="secondary" aria-label={t('early.repeat')} onClick={() => speak(spoken)}>🔊</button>}
       {!snapshot.hint && <button type="button" className="secondary" disabled={status !== 'ready'} onClick={hint}>{t('game.hint')}</button>}
     </> : <Feedback snapshot={snapshot} note={message} onAdvance={advance} />}
     {status === 'offline' && <button type="button" onClick={retry}>{t('app.retry')}</button>}

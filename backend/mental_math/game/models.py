@@ -52,7 +52,7 @@ class Problem(Base):
     operand_a: Mapped[int] = mapped_column(Integer, nullable=False)
     operand_b: Mapped[int] = mapped_column(Integer, nullable=False)
     correct_answer: Mapped[int] = mapped_column(Integer, nullable=False)
-    kind: Mapped[str] = mapped_column(String(12), default="result")
+    kind: Mapped[str] = mapped_column(String(20), default="result")
     prompt: Mapped[dict | None] = mapped_column(JSON)
     hinted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

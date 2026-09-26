@@ -21,6 +21,14 @@ header { display: flex; justify-content: space-between; gap: 16px; align-items: 
 .game .secondary, .button.secondary { background: #e4eeec; color: #124f4a; }
 .feedback { display: grid; gap: 12px; }
 .home { max-width: 560px; }
+.theme-icon { width: 1em; height: 1em; vertical-align: middle; display: inline-block; }
+.sticker { width: 64px; height: 64px; }
+.sticker-big { width: 128px; height: 128px; animation: pop 500ms ease-out; }
+@keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sticker-big { animation: none; } }
+.sticker-new { display: grid; place-items: center; gap: 8px; margin: 12px 0; font-weight: 700; color: #124f4a; }
+.shelf ul { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.shelf p { margin: 0 0 6px; color: #47596a; font-weight: 650; }
 .button.big { min-height: 64px; font-size: 1.3rem; padding-inline: 28px; }
 .game-footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 24px; align-items: center; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 20px; margin-bottom: 24px; }

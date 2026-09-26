@@ -1,0 +1,24 @@
+.grid { display: grid; grid-template-columns: repeat(5, 56px); grid-auto-rows: 56px; gap: 6px; justify-content: center; }
+.grid[data-hidden="true"] .objectButton { background: #e8e2cf; }
+.objectButton { display: grid; place-items: center; min-width: 56px; min-height: 56px; border: 2px solid transparent; border-radius: 14px; background: #fff; padding: 0; }
+.object { font-size: 2rem; line-height: 1; }
+.marked { outline: 3px solid #126d67; border-radius: 12px; }
+.counter { font-size: 3rem; font-weight: 700; text-align: center; margin: 8px 0; }
+.done, .plus { min-height: 64px; min-width: 64px; font-size: 1.5rem; border-radius: 16px; }
+.tray { display: flex; gap: 12px; align-items: center; justify-content: center; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.card { min-height: 112px; border: 3px solid #697b83; border-radius: 18px; background: #fff; display: grid; place-items: center; }
+.cardNumber { font-size: 2.5rem; font-weight: 700; }
+.cardIcon { font-size: 2.5rem; }
+.dots { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-width: 80px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: #126d67; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-end; }
+.slot { font-size: 2rem; font-weight: 700; color: #dd7a14; }
+.frame { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 320px; margin: 0 auto; }
+.cell { display: grid; place-items: center; height: 56px; border: 2px solid #697b83; border-radius: 8px; background: #fff; }
+.towers { display: flex; gap: 16px; justify-content: center; align-items: flex-end; }
+.tower { display: flex; flex-direction: column-reverse; gap: 2px; min-width: 64px; padding: 8px; border-radius: 12px; border: 2px solid #697b83; background: #fff; position: relative; }
+.block { font-size: 1.6rem; }
+.badge { position: absolute; top: -12px; right: -12px; background: #dd7a14; color: #fff; border-radius: 50%; width: 28px; height: 28px; display: grid; place-items: center; font-weight: 700; }
+.friend { font-size: 2.5rem; }
+.pick { min-width: 96px; min-height: 96px; border-radius: 18px; border: 2px solid #697b83; background: #fff; display: grid; place-items: center; }

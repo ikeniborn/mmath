@@ -8,7 +8,7 @@ async def test_profile_change_cannot_alter_issued_problem_or_session_settings(fa
     assert changed.status_code == 200
     snapshot = (await family.get(f"/sessions/{lesson.session_id}")).json()
     assert snapshot["current_problem"] == lesson.problem
-    assert snapshot["settings"] == {"mode": "automatic", "difficulty_band": 0, "topics": ["addition"], "session_minutes": 10}
+    assert snapshot["settings"] == {"mode": "automatic", "difficulty_band": 0, "topics": ["addition"], "session_minutes": 10, "round_tasks": 10, "picture_mode": False}
     assert snapshot["time_limit_ms"] == 10 * 60_000
     body = (await family.post(f"/sessions/{lesson.session_id}/attempts", json=lesson.command)).json()
     advanced = (await family.post(f"/sessions/{lesson.session_id}/advance", json={"attempt_id": body["attempt_id"], "expected_version": body["session"]["version"]})).json()

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Итоги внедрения: early-numeracy-game-tasks</title>
+<style>
+:root{--bg:#f7f6f1;--fg:#1e2a30;--muted:#5d6b73;--card:#ffffff;--line:#d3dfdd;--accent:#126d67;--accent2:#dd7a14;--ok:#2f8a4a;--warn:#c48a12;--info:#3f6fb5;--code:#eef2f1;--shadow:0 4px 0 #d3dfdd}
+[data-theme="dark"]{--bg:#141a1e;--fg:#e8eef0;--muted:#9fb0b8;--card:#1d262c;--line:#2f3d45;--accent:#4fb8b0;--accent2:#f2a24a;--ok:#5fc27a;--warn:#e0b04a;--info:#7fa6e6;--code:#243038;--shadow:0 4px 0 #2f3d45}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--fg)}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 28px;border-bottom:2px solid var(--line)}
+h1{font-size:1.5rem;margin:0}h2{font-size:1.25rem;margin:32px 0 12px;color:var(--accent)}h3{font-size:1.05rem;margin:20px 0 8px}
+main{max-width:1180px;margin:0 auto;padding:12px 28px 48px}
+.lead{color:var(--muted);margin:0 0 12px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:2px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin:8px 0 16px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:.93rem}th{background:var(--code);font-weight:700}tr:last-child td{border-bottom:0}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--code);padding:1px 5px;border-radius:5px}
+.badge{display:inline-block;padding:1px 9px;border-radius:999px;font-size:.78rem;font-weight:700;color:#fff}.done{background:var(--ok)}.partial{background:var(--warn)}.excess{background:var(--info)}.ok{background:var(--accent)}
+.note{border-left:5px solid var(--accent2);background:var(--card);padding:10px 14px;border-radius:0 12px 12px 0;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0}
+.kpi{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}.kpi b{display:block;font-size:1.4rem;color:var(--accent)}.kpi span{color:var(--muted);font-size:.85rem}
+details{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 14px;margin:8px 0}summary{cursor:pointer;font-weight:700}
+button.toggle{border:2px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700}
+figure{margin:12px 0;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}figcaption{color:var(--muted);font-size:.85rem;margin-top:6px}
+svg text{font:13px system-ui,sans-serif;fill:var(--fg)}svg .box{fill:var(--card);stroke:var(--accent);stroke-width:2;rx:10}svg .new{stroke:var(--accent2)}svg .edge{stroke:var(--muted);stroke-width:2;fill:none;marker-end:url(#arrow)}
+svg .lbl{fill:var(--muted);font-size:11px}
+</style>
+</head>
+<body>
+<header><h1>Итоги внедрения: <code>early-numeracy-game-tasks</code></h1><button class="toggle" type="button" id="toggle" aria-label="Переключить тему">🌙 Тёмная тема</button></header>
+<main>
+<section id="summary"><h2>1. Резюме внедрения</h2>
+<p class="lead">Игровые картиночные задания для детей 4–5 лет внутри существующего движка mmath: тема <code>early</code>, ответы тапом и карточками, озвучка, SVG-объекты тем, наклейки, длина раунда 6/10. Развёрнуто на minipc и проверено после деплоя.</p>
+<table><tbody>
+<tr><th>Intent</th><td><code>docs/superpowers/intents/2026-09-26-early-numeracy-game-tasks-intent.md</code> — approved / OK, body <code>878235b74d165bf2</code></td></tr>
+<tr><th>Spec</th><td><code>docs/superpowers/specs/2026-09-26-early-numeracy-game-tasks-design.md</code> — approved / OK, body <code>33cbdd0d2824a6e9</code></td></tr>
+<tr><th>Plan</th><td><code>docs/superpowers/plans/2026-09-26-early-numeracy-game-tasks.md</code> — approved / OK, body <code>15b2cd4e7a520b67</code></td></tr>
+<tr><th>База diff</th><td><code>dev-mental-math-web-platform</code> (1e228f1) → <code>654a934</code>: 60 файлов, +3282 / −145</td></tr>
+<tr><th>Деплой</th><td>minipc, <code>http://192.168.68.135:8080</code>, ветка <code>dev-early-numeracy-game-tasks</code> @ 1a004a8, миграция 0010</td></tr>
+<tr><th>Вердикт</th><td><span class="badge ok">OK</span> — все задачи плана DONE, 4/5 исходов интента наблюдаемы на LAN, O5 — человеческая проверка</td></tr>
+</tbody></table>
+<div class="grid">
+<div class="kpi"><b>375</b><span>pytest passed</span></div><div class="kpi"><b>36</b><span>vitest passed</span></div><div class="kpi"><b>21 + 3</b><span>Playwright (полный прогон + early-round)</span></div><div class="kpi"><b>p95 16 мс</b><span>POST /api/v1/sessions, n=23 (цель ≤ 60)</span></div><div class="kpi"><b>110,5 KB</b><span>JS+CSS gzip на edge (бюджет 160)</span></div><div class="kpi"><b>0</b><span>ошибок в логах api и edge после деплоя</span></div>
+</div></section>
+
+<section id="changes"><h2>2. Выполненные изменения</h2>
+<p class="lead">Файлы диффа относительно базовой ветки; строки — из <code>git diff --numstat</code>.</p>
+<details open><summary>Бэкенд (14 файлов)</summary><table><thead><tr><th>Путь</th><th>Тип</th><th>±</th><th>Что делает</th></tr></thead><tbody>
+<tr><td><code>backend/mental_math/game/early.py</code></td><td>added</td><td>+143</td><td>Девять навыков темы early, восемь kind, сцены, кубики, <code>answer_options</code></td></tr>
+<tr><td><code>backend/mental_math/game/catalogue.py</code></td><td>modified</td><td>+5 −2</td><td>Регистрация early, тема в TOPICS, compare band 0 без пустых кучек</td></tr>
+<tr><td><code>backend/mental_math/game/engine.py</code></td><td>modified</td><td>+22 −5</td><td>picture_mode и round_tasks в настройках сессии, options при выдаче, длина раунда, переключение навыка после каждого верного в picture mode</td></tr>
+<tr><td><code>backend/mental_math/game/schemas.py</code></td><td>modified</td><td>+4 −2</td><td>15 kind в PublicProblem, hint kind scene, новые ключи SessionSettings</td></tr>
+<tr><td><code>backend/mental_math/game/hints.py</code></td><td>modified</td><td>+3</td><td>Подсказка scene для early-kind</td></tr>
+<tr><td><code>backend/mental_math/game/models.py</code></td><td>modified</td><td>+1 −1</td><td>problems.kind до 20 символов</td></tr>
+<tr><td><code>backend/mental_math/game/generator.py</code></td><td>modified</td><td>+2 −1</td><td>Докстринг kind</td></tr>
+<tr><td><code>backend/mental_math/student/errors.py</code></td><td>modified</td><td>+4 −1</td><td>Без классификации ошибок для early-kind</td></tr>
+<tr><td><code>backend/mental_math/players/models.py</code></td><td>modified</td><td>+3 −1</td><td>round_tasks с проверкой 6|10</td></tr>
+<tr><td><code>backend/mental_math/players/schemas.py</code></td><td>modified</td><td>+37 −6</td><td>Тема early, возрастные умолчания тем и длины раунда, явный PlayerView, RewardsView</td></tr>
+<tr><td><code>backend/mental_math/players/routes.py</code></td><td>modified</td><td>+4 −1</td><td>round_tasks в view, rewards в progress</td></tr>
+<tr><td><code>backend/mental_math/players/rewards.py</code></td><td>added</td><td>+24</td><td>Награды из завершённых раундов, коды наклеек</td></tr>
+<tr><td><code>backend/migrations/versions/0010_early_numeracy.py</code></td><td>added</td><td>+25</td><td>Миграция: kind 20, round_tasks</td></tr>
+<tr><td><code>backend/tests/…</code> (7 файлов)</td><td>added/modified</td><td>+250 −3</td><td>test_early_catalogue, test_early_sessions, test_rewards, утечка, solver, ожидания settings</td></tr>
+</tbody></table></details>
+<details open><summary>Фронтенд (30 файлов)</summary><table><thead><tr><th>Путь</th><th>Тип</th><th>±</th><th>Что делает</th></tr></thead><tbody>
+<tr><td><code>frontend/src/features/game/early/*</code> (8 файлов)</td><td>added</td><td>+322</td><td>EarlyTask, сцены, PictureCards, useSpeech, типы, стили, тесты</td></tr>
+<tr><td><code>frontend/src/features/game/TaskPicture.tsx</code> + css + test</td><td>modified/added</td><td>+111 −31</td><td>Ярус A: кучки, пары, вагончики, гараж, уезжающие, корзина</td></tr>
+<tr><td><code>frontend/src/features/game/GamePage.tsx</code></td><td>modified</td><td>+20 −5</td><td>Ветка picture mode, озвучка, кнопка повтора</td></tr>
+<tr><td><code>frontend/src/features/game/SessionSummary.tsx</code> + test</td><td>modified/added</td><td>+34 −1</td><td>Наклейка за раунд</td></tr>
+<tr><td><code>frontend/src/features/game/ChildHome.tsx</code></td><td>modified</td><td>+10 −1</td><td>Полка наклеек</td></tr>
+<tr><td><code>frontend/src/features/game/Hint.tsx</code>, <code>prompt.ts</code></td><td>modified</td><td>+8 −1</td><td>scene-подсказка, тексты early-заданий</td></tr>
+<tr><td><code>frontend/src/assets/themes/*</code>, <code>ASSETS.md</code></td><td>added</td><td>+75</td><td>SVG-объекты тем, фигуры, наклейки, лицензия</td></tr>
+<tr><td><code>frontend/src/features/players/PlayerSettings.tsx</code>, <code>PlayerPicker.tsx</code> + test</td><td>modified/added</td><td>+26 −4</td><td>Тема early, 6/10 задач, умолчание тем с сервера</td></tr>
+<tr><td><code>frontend/src/i18n.tsx</code></td><td>modified</td><td>+86</td><td>ru/en строки</td></tr>
+<tr><td><code>frontend/src/api-schema.json</code>, <code>api-types.ts</code></td><td>modified</td><td>+166 −53</td><td>Регенерированный контракт</td></tr>
+<tr><td><code>frontend/e2e/early-round.spec.ts</code></td><td>added</td><td>+69</td><td>Раунд тапами, ребёнок 7 лет, настройки родителя</td></tr>
+<tr><td><code>frontend/e2e/pictures.spec.ts</code></td><td>deleted</td><td>−16</td><td>Заменён early-round.spec.ts</td></tr>
+<tr><td><code>frontend/e2e/difficulty-modes.spec.ts</code>, тестовые фикстуры</td><td>modified</td><td>+3 −3</td><td>Возраст 6 для подсказки-счётчиков, новые ключи settings</td></tr>
+<tr><td><code>frontend/src/styles.css</code></td><td>modified</td><td>+8</td><td>Иконки, наклейки, полка</td></tr>
+</tbody></table></details>
+<details><summary>Документы и скрипты (8 файлов)</summary><table><thead><tr><th>Путь</th><th>Тип</th><th>±</th><th>Что делает</th></tr></thead><tbody>
+<tr><td><code>README.md</code></td><td>modified</td><td>+27 −7</td><td>Тема early, picture mode, наклейки, бюджет</td></tr>
+<tr><td><code>docs/runbooks/deployment.md</code>, <code>release-checklist.md</code></td><td>modified</td><td>+3</td><td>Запись деплоя, пункт про бюджет и озвучку</td></tr>
+<tr><td><code>scripts/check_assets.py</code></td><td>modified</td><td>+6</td><td>Бюджет gzip 160 KB</td></tr>
+<tr><td><code>docs/superpowers/{intents,specs,plans}/2026-09-26-…</code></td><td>added</td><td>+1780</td><td>Артефакты цепочки</td></tr>
+</tbody></table></details>
+</section>
+
+<section id="results"><h2>3. Результаты</h2>
+<p class="lead">Сверка задач плана с диффом, покрытие исходов интента и разделов спеки.</p>
+<table><thead><tr><th>Задача плана</th><th>Статус</th><th>Свидетельство в диффе</th></tr></thead><tbody>
+<tr><td>1. Каталог early (8 kind, правило утечки, миграция 0010)</td><td><span class="badge done">DONE</span></td><td>early.py, catalogue.py, schemas.py, hints.py, errors.py, models.py, 0010, test_early_catalogue.py, test_public_view_hides_answers.py</td></tr>
+<tr><td>2. Настройки сессии и контракт (picture_mode, options, round_tasks, умолчание тем)</td><td><span class="badge done">DONE</span></td><td>engine.py, players/{models,schemas,routes}.py, conftest.py, test_early_sessions.py, api-schema.json, api-types.ts</td></tr>
+<tr><td>3. Награды из завершённых раундов</td><td><span class="badge done">DONE</span></td><td>players/rewards.py, RewardsView, progress route, test_rewards.py</td></tr>
+<tr><td>4. Модуль early на фронте (сцены, тапы, карточки)</td><td><span class="badge done">DONE</span></td><td>features/game/early/*, GamePage.tsx, prompt.ts, i18n.tsx</td></tr>
+<tr><td>5. Ярус A на существующих навыках</td><td><span class="badge done">DONE</span></td><td>TaskPicture.tsx/.module.css/.test.tsx, GamePage.tsx</td></tr>
+<tr><td>6. Озвучка, SVG-ассеты, наклейки, настройки родителя, бюджет</td><td><span class="badge done">DONE</span></td><td>useSpeech.ts, assets/themes/*, SessionSummary, ChildHome, PlayerSettings, PlayerPicker, check_assets.py</td></tr>
+<tr><td>7. Playwright, GWT, документация</td><td><span class="badge done">DONE</span></td><td>early-round.spec.ts, README.md, release-checklist.md; 4 новых сценария + расширенный task-shapes в wiki (skill-practice rev 11)</td></tr>
+<tr><td>8. Деплой на minipc и пост-деплой-проверки</td><td><span class="badge done">DONE</span></td><td>deployment.md (запись 2026-09-26); смоук двух раундов, p95 16 мс, бандл 110,5 KB, логи без ошибок</td></tr>
+</tbody></table>
+<h3>Исходы интента: 4/5 наблюдаемы, 1 — человеческая проверка</h3>
+<table><thead><tr><th>Исход</th><th>Статус</th><th>Свидетельство</th></tr></thead><tbody>
+<tr><td>O1 — раунд без чтения и клавиатуры, озвучен, картинки, ответ тапом</td><td><span class="badge done">DONE</span></td><td>early-round.spec.ts: 6 задач тапами, клавиатуры нет; useSpeech; смоук на LAN</td></tr>
+<tr><td>O2 — ≥ 5 игровых форм в раунде</td><td><span class="badge done">DONE</span></td><td>Найдено смоуком и исправлено (1a004a8): в picture mode навык меняется после каждого верного; тест ≥ 5 навыков за 6 задач</td></tr>
+<tr><td>O3 — награда темы и коллекция</td><td><span class="badge done">DONE</span></td><td>rewards в progress, наклейка на итогах, полка на домашнем экране; смоук: cars-2 после двух раундов</td></tr>
+<tr><td>O4 — родитель видит новые навыки в прогрессе</td><td><span class="badge done">DONE</span></td><td>player_skills для count_objects, make_same, quick_look… в progress; i18n имён навыков</td></tr>
+<tr><td>O5 — проверка с реальным ребёнком 4 лет</td><td><span class="badge partial">PARTIAL</span></td><td>Человеческий чекпоинт (слайс S9); не выполняется агентом</td></tr>
+</tbody></table>
+<h3>Разделы спеки: 8/8</h3>
+<p>§1 решение → архитектура A; §2 acceptance и числа метрик (160 KB, p95 60 мс) → check_assets, лог API; §3 каталог → Task 1; §4 контракт/движок/профиль → Tasks 2–3; §5 фронт → Tasks 4–6; §6 проверка → Task 7; §7 слайсы → ledger S1–S9; §8 риски → Reset для «Лесенки», тихая озвучка без голоса.</p>
+<h3>Избыточные изменения</h3>
+<table><thead><tr><th>Изменение</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody>
+<tr><td>Переключение навыка после каждого верного ответа в picture mode (engine.py, 1a004a8)</td><td><span class="badge excess">EXCESS → O2</span></td><td>Не в плане; обнаружено смоуком после деплоя, закрывает O2. Записано в ledger как decision.</td></tr>
+<tr><td>Явный non-nullable PlayerView (players/schemas.py)</td><td><span class="badge excess">EXCESS</span></td><td>Следствие опционального topics: контракт без null-полей в ответе</td></tr>
+<tr><td>Сдвиг теста «themed hint» на возраст 6 (difficulty-modes.spec.ts)</td><td><span class="badge excess">EXCESS</span></td><td>Возраст 5 теперь играет в picture mode; смысл теста сохранён</td></tr>
+</tbody></table>
+<div class="note"><b>Вердикт: OK.</b> Ни одна задача плана не отсутствует; открытых CRITICAL нет. O5 остаётся человеческим чекпоинтом, поэтому жизненный цикл темы — <code>completion-pending</code> до проверки с ребёнком и PR в master.</div>
+</section>
+
+<section id="impact"><h2>4. Влияние на систему</h2>
+<p class="lead">Что затронуто, как меняется поведение, что остаётся риском.</p>
+<table><thead><tr><th>Компонент</th><th>Изменение поведения</th><th>Риски / дальнейшие шаги</th></tr></thead><tbody>
+<tr><td>Публичный контракт <code>PublicProblem</code></td><td>15 kind, <code>prompt.options</code> для карточек, <code>SessionSettings.picture_mode/round_tasks</code>, <code>PlayerView.round_tasks</code>, <code>ProgressView.rewards</code></td><td>Старые сессии без новых ключей валидируются через умолчания; клиенты, ожидавшие 7 kind, увидят новые только у детей с темой early или picture mode</td></tr>
+<tr><td>Движок сессии</td><td>Длина раунда из настроек; options при выдаче; в picture mode переключение после каждого верного</td><td>Продвижение навыка у 4–5-летних медленнее (навык возвращается через ~10 задач); наблюдать по прогрессу</td></tr>
+<tr><td>Каталог</td><td>+9 навыков, compare band 0 без нулей</td><td>Утечка ответа контролируется каталожным тестом (3000 выдач, 33 % ± 5 pp)</td></tr>
+<tr><td>Профили</td><td>Тема early и 6 задач по умолчанию для 4–5; explicit topics обязателен ≥ 1</td><td>Существующие профили 4–5 лет сохраняют старые темы и 10 задач до правки родителем</td></tr>
+<tr><td>Фронт</td><td>Модуль early, картиночные ответы, озвучка, SVG, наклейки; 6–10 лет — без изменений (снимок GamePage)</td><td>Голоса ru на Android могут отсутствовать — задачи решаемы без звука; бандл 110,5 KB из 160</td></tr>
+<tr><td>БД</td><td>Миграция 0010: kind 20 символов, round_tasks</td><td>Обратима; down проверен на тестовой БД</td></tr>
+<tr><td>Деплой minipc</td><td>1a004a8 live; синтетические аккаунты lan-early-* в боевой БД</td><td>Удалить аккаунты по решению владельца; S9 проверка с ребёнком; PR после merge PR #1</td></tr>
+</tbody></table>
+</section>
+
+<section id="diagrams"><h2>5. Схемы</h2>
+<p class="lead">Новый модуль и новые связи: путь задачи в picture mode.</p>
+<figure><svg viewBox="0 0 1100 330" width="100%" role="img" aria-label="Поток задачи в picture mode">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor" style="color:var(--muted)"/></marker></defs>
+<rect class="box" x="20" y="40" width="200" height="70"/><text x="120" y="70" text-anchor="middle">players.schemas</text><text x="120" y="92" text-anchor="middle" class="lbl">age ≤ 5 → early, round 6</text>
+<rect class="box" x="290" y="40" width="200" height="70"/><text x="390" y="70" text-anchor="middle">engine.start_session</text><text x="390" y="92" text-anchor="middle" class="lbl">picture_mode, round_tasks</text>
+<rect class="box new" x="560" y="40" width="200" height="70"/><text x="660" y="70" text-anchor="middle">game.early (new)</text><text x="660" y="92" text-anchor="middle" class="lbl">сцены, options</text>
+<rect class="box" x="830" y="40" width="240" height="70"/><text x="950" y="70" text-anchor="middle">engine._issue</text><text x="950" y="92" text-anchor="middle" class="lbl">options для result/missing, switch</text>
+<rect class="box" x="290" y="200" width="200" height="70"/><text x="390" y="230" text-anchor="middle">PublicProblem</text><text x="390" y="252" text-anchor="middle" class="lbl">15 kind, prompt без ответа</text>
+<rect class="box new" x="560" y="200" width="200" height="70"/><text x="660" y="230" text-anchor="middle">features/game/early (new)</text><text x="660" y="252" text-anchor="middle" class="lbl">EarlyTask · PictureCards · useSpeech</text>
+<rect class="box" x="830" y="200" width="240" height="70"/><text x="950" y="230" text-anchor="middle">players.rewards (new)</text><text x="950" y="252" text-anchor="middle" class="lbl">rewards → наклейка, полка</text>
+<path class="edge" d="M220 75 H290"/><path class="edge" d="M490 75 H560"/><path class="edge" d="M760 75 H830"/>
+<path class="edge" d="M950 110 V160 Q950 180 930 180 H410 Q390 180 390 200"/>
+<path class="edge" d="M490 235 H560"/><path class="edge" d="M760 235 H830"/>
+<path class="edge" d="M660 270 V300 Q660 315 640 315 H140 Q120 315 120 300 V110"/>
+<text x="400" y="310" class="lbl">ответ int → grade → record_attempt → следующая задача</text>
+</svg><figcaption>Оранжевые рамки — новые модули. Ответ ребёнка остаётся целым числом и проверяется сервером; клиент получает сцену и неотмеченные варианты.</figcaption></figure>
+</section>
+</main>
+<script>
+(function(){var b=document.getElementById('toggle'),h=document.documentElement;function apply(t){h.setAttribute('data-theme',t);b.textContent=t==='dark'?'☀️ Светлая тема':'🌙 Тёмная тема';}
+var saved=null;try{saved=localStorage.getItem('report-theme');}catch(e){}
+apply(saved||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+b.addEventListener('click',function(){var t=h.getAttribute('data-theme')==='dark'?'light':'dark';apply(t);try{localStorage.setItem('report-theme',t);}catch(e){}});})();
+</script>
+</body>
+</html>
