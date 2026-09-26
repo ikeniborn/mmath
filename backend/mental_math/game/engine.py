@@ -25,6 +25,7 @@ from mental_math.game.validator import grade
 from mental_math.observability import metrics
 from mental_math.players.models import Player
 from mental_math.players.service import owned_player
+from mental_math.policy.fallback import SWITCH_RUN
 from mental_math.policy.runtime import PolicyRuntime, resolve
 from mental_math.policy.service import state_payload
 from mental_math.policy.types import PolicyState
@@ -80,6 +81,10 @@ async def _automatic_bands(db: AsyncSession, player_id: UUID) -> dict[str, int]:
 async def _issue(db: AsyncSession, session: LearningSession, ordinal: int, *, current: str | None = None, action: str = "repeat") -> Problem:
     code, band = next_skill(session.settings, await _automatic_bands(db, session.player_id), current, action)
     session.skill_run = session.skill_run + 1 if code == current else 1
+    if session.settings.get("picture_mode"):
+        # Variety for ages 4-5: every task counts as a full run, so the rules switch skill after each correct answer
+        # and a six-task round shows five or six different game forms; the per-skill promotion streak is untouched.
+        session.skill_run = max(session.skill_run, SWITCH_RUN)
     generated = generate(code, session.id, ordinal, band)
     prompt = generated.prompt
     if session.settings.get("picture_mode") and generated.kind in {"result", "missing", "sequence"} and band <= 1:

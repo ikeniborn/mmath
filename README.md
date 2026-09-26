@@ -124,7 +124,8 @@ start and never rewritten: the default topics are `early`, addition, subtraction
 (`round_tasks`, the parent may choose 10), and the child never needs the keypad or the text. Numeric tasks at
 bands 0–1 arrive with three unmarked answer cards (`prompt.options`); compare draws two piles to tap plus a "same"
 card, odd/even draws pairs with Yes/No, neighbours are train carriages, a missing addend hides behind a garage,
-subtraction objects leave, addition fills a basket. Every task and its feedback is read aloud through the browser
+subtraction objects leave, addition fills a basket. In picture mode the skill switches after every correct answer, so a six-task round shows five or six
+different game forms; the per-skill promotion streak still needs five unhinted correct answers. Every task and its feedback is read aloud through the browser
 speech API (silent when no voice matches; a speaker button repeats it). Theme objects are hand-drawn inline SVGs
 (`frontend/src/assets/ASSETS.md`), the bundle stays under 160 KB gzip (`scripts/check_assets.py`). A finished
 round with at least half of its tasks answered earns a sticker `<theme>-<1..8>`, derived from the child's sessions
