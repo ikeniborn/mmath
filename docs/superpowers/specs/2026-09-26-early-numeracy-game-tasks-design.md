@@ -1,5 +1,34 @@
 ---
 topic: early-numeracy-game-tasks
+review:
+  spec_hash: 33cbdd0d2824a6e9
+  last_run: 2026-09-26
+  phases:
+    structure: { status: passed }
+    coverage: { status: passed }
+    clarity: { status: passed }
+    consistency: { status: passed }
+  findings:
+    - id: F-001
+      phase: clarity
+      severity: WARNING
+      section: "3. Catalogue: Topic `early`"
+      section_hash: 0c087facd8b60496
+      fragment: "its position uniformly distributed over draws"
+      text: "Uniformity of the correct option's position has no tolerance, so the leak test cannot fail or pass deterministically."
+      fix: "The plan's leak test asserts each of the three positions holds the answer in 33% ± 5 percentage points of 3 000 draws."
+      verdict: open
+      verdict_at: null
+    - id: F-002
+      phase: clarity
+      severity: WARNING
+      section: "4. Contract, Engine and Profile"
+      section_hash: b57cd12e36c62c19
+      fragment: "the sticker for the n-th such round is STICKERS[theme][n mod 8]"
+      text: "Reward and sticker name the same entity in sections 4 and 5."
+      fix: "The plan and code use reward for the API field and sticker for the drawn asset, stated once in the progress schema docstring."
+      verdict: open
+      verdict_at: null
 chain:
   intent: docs/superpowers/intents/2026-09-26-early-numeracy-game-tasks-intent.md
 ---
