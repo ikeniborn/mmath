@@ -1,5 +1,35 @@
 ---
 topic: early-numeracy-game-tasks
+review:
+  plan_hash: 15b2cd4e7a520b67
+  last_run: 2026-09-26
+  phases:
+    structure: { status: passed }
+    coverage: { status: passed }
+    dependencies: { status: passed }
+    verifiability: { status: passed }
+    consistency: { status: passed }
+  findings:
+    - id: F-001
+      phase: dependencies
+      severity: WARNING
+      section: "Task 7: Browser Journeys, GWT Scenarios and Documentation"
+      section_hash: d03efd85f6196476
+      fragment: "await page.getByRole('button', { name: 'Дальше' }).click();"
+      text: "The feedback button label is assumed; the plan itself tells the implementer to read Feedback.tsx first."
+      fix: "Use the Russian text of the game.next key from i18n.tsx (whatever Feedback.tsx renders) in the journey."
+      verdict: open
+      verdict_at: null
+    - id: F-002
+      phase: verifiability
+      severity: WARNING
+      section: "Task 6: Speech, SVG Assets, Stickers and Parent Controls"
+      section_hash: 4a02723ecf9978d2
+      fragment: "Add to SessionSummary a test that with rewards.count = 3 and theme cars the sticker cars-3 is shown"
+      text: "The SessionSummary and PlayerSettings tests are described, not written out."
+      fix: "Write both vitest cases when executing Task 6: stubbed fetch returning rewards {count: 3, latest: 'cars-3'} renders .sticker-new; the settings form PATCH body carries round_tasks and topics including early."
+      verdict: open
+      verdict_at: null
 chain:
   intent: docs/superpowers/intents/2026-09-26-early-numeracy-game-tasks-intent.md
   spec: docs/superpowers/specs/2026-09-26-early-numeracy-game-tasks-design.md
