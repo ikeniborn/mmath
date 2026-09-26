@@ -49,6 +49,8 @@ A probe from minipc with a wrong password must answer `password authentication f
 
 First LAN start on 2026-09-25: migrations applied, `/health/ready` answered `database ok, schema ok` inside the network, the edge served the SPA and `/api/v1/auth/session` while hiding `/health/*` and `/internal/*`, and a synthetic parent registered a child, played one addition task, finished the session and read the progress page through `http://192.168.68.135:8080`.
 
+Early numeracy deployment on 2026-09-26 (branch dev-early-numeracy-game-tasks, 1a004a8): migration 0010 applied, readiness ok, a synthetic age-4 profile played two six-task rounds through the edge with the early kinds and answer cards and earned two stickers, an age-7 profile kept ten tasks without cards; `POST /api/v1/sessions` p95 16 ms over 23 starts (target ≤ 60 ms), served bundle 107.8 KB JS + 2.8 KB CSS gzip (budget 160 KB), no API or edge errors. Synthetic accounts `lan-early-<timestamp>@example.com` remain in the database.
+
 ```bash
 /opt/mmath/src/deploy/minipc-lan.sh config
 /opt/mmath/src/deploy/minipc-lan.sh up
