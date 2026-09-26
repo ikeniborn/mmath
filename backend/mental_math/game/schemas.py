@@ -22,7 +22,7 @@ class HintRequest(BaseModel):
 
 
 class HintView(BaseModel):
-    kind: Literal["counters", "ten_frame", "number_line", "groups", "pairs", "target"]
+    kind: Literal["counters", "ten_frame", "number_line", "groups", "pairs", "target", "scene"]
     operation: str
     operand_a: int
     operand_b: int
@@ -42,7 +42,7 @@ class PublicProblem(BaseModel):
     operation: str
     operand_a: int | None
     operand_b: int | None
-    kind: Literal["result", "missing", "chain", "sequence", "compare", "parity", "operator"]
+    kind: Literal["result", "missing", "chain", "sequence", "compare", "parity", "operator", "count", "match", "subitize", "pattern", "frame", "order", "share", "pick"]
     prompt: dict | None
 
 

@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Callable
 from uuid import UUID
 
+from mental_math.game import early
 from mental_math.game.generator import GeneratedProblem
 
 Sample = Callable[[random.Random, int], GeneratedProblem]
@@ -318,7 +319,7 @@ def compare(rng: random.Random, band: int) -> GeneratedProblem:
 
     def expression() -> tuple[str, int]:
         if band <= 1:
-            n = rng.randint(0, limit)
+            n = rng.randint(1 if band == 0 else 0, limit)
             return str(n), n
         a = rng.randint(0, limit)
         if rng.random() < 0.5:
@@ -381,10 +382,12 @@ RAW: list[tuple[str, str, str, tuple[int, ...], Sample, Check]] = [
     ("division_quotient", "division", "division", (4,), division_quotient, lambda p: p.correct_answer == p.operand_a // p.operand_b and p.operand_a < 100),
     ("remainder", "division", "remainder", (4,), remainder, lambda p: p.correct_answer == p.operand_a % p.operand_b < p.operand_b),
     ("compare", "comparison", "compare", (0, 1, 2, 3, 4), compare, lambda p: p.kind == "compare" and p.correct_answer in {-1, 0, 1} and max(p.operand_a, p.operand_b) <= (100 if p.band == 4 else 20)),
+    # early numeracy for ages 4-5: the operation string doubles as the task kind; bands 0 (within 5) and 1 (within 10)
+    *[(code, "early", sample(random.Random(0), 0).kind, (0, 1), sample, early.early_ok) for code, sample in early.SKILLS],
 ]
 
 CATALOGUE: dict[str, Skill] = {code: Skill(code, topic, operation, bands, sample, check) for code, topic, operation, bands, sample, check in RAW}
-TOPICS = ("addition", "subtraction", "counting", "multiplication", "division", "comparison")
+TOPICS = ("addition", "subtraction", "counting", "multiplication", "division", "comparison", "early")
 
 
 def generate(code: str, session_id: UUID, ordinal: int, band: int) -> GeneratedProblem:

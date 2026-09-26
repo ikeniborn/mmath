@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 
 from mental_math.game.catalogue import CATALOGUE, generate
+from mental_math.game.early import EARLY_KINDS
 from mental_math.game.engine import public_problem
 from mental_math.game.hints import render_hint
 
@@ -31,3 +32,8 @@ def test_public_task_and_hint_only_carry_public_quantities(code, band):
         if problem.kind in {"missing"} or problem.operation in {"division", "remainder"}:
             # the scaffold is built only from the visible operand and the result / dividend and divisor
             assert {hint.operand_a, hint.operand_b} <= public_numbers | {0}, (code, band, view, hint)
+        if problem.kind in EARLY_KINDS:
+            # the scene is the question: no top-level number may spell the answer, only the unmarked options may hold it
+            top_level = {value for key, value in (view["prompt"] or {}).items() if isinstance(value, int) and key != "options"}
+            assert problem.correct_answer not in top_level, (code, band, view)
+            assert hint.kind == "scene" and hint.operand_a == 0 and hint.operand_b == 0

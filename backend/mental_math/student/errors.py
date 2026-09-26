@@ -4,7 +4,10 @@
 def classify(problem, answer: int) -> str | None:
     if answer == problem.correct_answer:
         return None
-    if getattr(problem, "kind", "result") in {"compare", "parity", "operator"}:
+    kind = getattr(problem, "kind", "result")
+    if kind in {"count", "match", "subitize", "pattern", "frame", "order", "share", "pick"}:
+        return None  # early numeracy scenes have no arithmetic error taxonomy
+    if kind in {"compare", "parity", "operator"}:
         return "other"
     if abs(answer - problem.correct_answer) == 1:
         return "off_by_one"

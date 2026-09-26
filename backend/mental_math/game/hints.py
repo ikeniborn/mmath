@@ -1,3 +1,4 @@
+from mental_math.game.early import EARLY_KINDS
 from mental_math.game.schemas import HintView
 
 
@@ -14,6 +15,8 @@ def render_hint(problem) -> HintView:
     """
     kind = getattr(problem, "kind", "result")
     a, b, op = problem.operand_a, problem.operand_b, problem.operation
+    if kind in EARLY_KINDS:  # the client redraws the scene with scaffolding; nothing beyond the scene itself
+        return HintView(kind="scene", operation=op, operand_a=0, operand_b=0, scale=10)
     if kind == "parity":
         return HintView(kind="pairs", operation=op, operand_a=a, operand_b=2, scale=_scale(a))
     if kind in {"compare", "operator"}:
