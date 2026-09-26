@@ -1,0 +1,15 @@
+{
+  "name": "Считай легко · Easy Count",
+  "short_name": "Считай легко",
+  "description": "Mental arithmetic practice for children aged 5–10 with parent accounts. Requires a connection.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf6ec",
+  "theme_color": "#126d67",
+  "lang": "ru",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

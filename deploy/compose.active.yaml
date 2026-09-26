@@ -1,0 +1,17 @@
+# Active policy overlay: apply gated Framework System One proposals (legal action set and confidence threshold).
+# Opt-in only after the checkpoint in docs/runbooks/active-policy-rollout.md; there is no default threshold.
+# The bearer token is mounted from a host file (never an environment variable or a repository file).
+services:
+  api:
+    environment:
+      MMATH_POLICY_MODE: active
+      MMATH_FRAMEWORK_URL: ${MMATH_FRAMEWORK_URL:?Set the Framework GPU Tools base URL}
+      MMATH_FRAMEWORK_MODEL: ${MMATH_FRAMEWORK_MODEL:-laya-auto}
+      MMATH_FRAMEWORK_TOKEN_FILE: /run/secrets/framework_edge_token
+      MMATH_ACTIVE_CONFIDENCE_THRESHOLD: ${MMATH_ACTIVE_CONFIDENCE_THRESHOLD:?Set the verified confidence threshold (0.5-1.0)}
+      MMATH_ACTIVE_ROLLOUT_AUTHORIZATION: ${MMATH_ACTIVE_ROLLOUT_AUTHORIZATION:?Name the recorded rollout decision}
+    secrets:
+      - framework_edge_token
+secrets:
+  framework_edge_token:
+    file: ${MMATH_FRAMEWORK_TOKEN_PATH:?Set the host path of the Framework edge token file}

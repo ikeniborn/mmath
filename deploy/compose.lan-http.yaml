@@ -1,0 +1,9 @@
+# LAN HTTP mode: the edge is published on an explicitly chosen address; no TLS, no Traefik.
+# Credentials and content are visible to network observers on this segment. Never expose it to the WAN.
+services:
+  api:
+    environment:
+      MMATH_MODE: lan-http
+  web:
+    ports:
+      - "${MMATH_LAN_BIND:-127.0.0.1}:${MMATH_LAN_PORT:-8080}:80"

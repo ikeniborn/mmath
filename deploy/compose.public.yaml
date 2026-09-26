@@ -1,0 +1,18 @@
+# Public mode: the external Traefik reaches the edge container over the shared docker network by alias.
+# Traefik itself is not deployed here; deploy/traefik/conf.d/mmath.yml is copied into its conf.d during an approved rollout.
+services:
+  api:
+    environment:
+      MMATH_MODE: public
+  web:
+    environment:
+      MMATH_TRUSTED_PROXIES: ${MMATH_TRUSTED_PROXIES:?Set the CIDR of the external Traefik network so client addresses survive to the API}
+    networks:
+      default: {}
+      edge:
+        aliases:
+          - ${MMATH_EDGE_ALIAS:-mmath-web}
+networks:
+  edge:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy-net}

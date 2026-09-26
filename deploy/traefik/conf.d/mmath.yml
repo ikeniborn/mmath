@@ -1,0 +1,18 @@
+# Traefik dynamic configuration for the external minipc edge (file provider; the docker provider is disabled).
+# Tracked here; copied to /opt/minipc-traefik/conf.d/mmath.yml only during an approved live deployment.
+# The service URL is the compose edge alias on the shared proxy-net network (MMATH_EDGE_ALIAS).
+http:
+  routers:
+    mmath-web:
+      rule: "Host(`mmath.ikeniborn.ru`)"
+      entryPoints:
+        - websecure
+      service: mmath-web
+      tls:
+        certResolver: letsencrypt
+  services:
+    mmath-web:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://mmath-web:80"

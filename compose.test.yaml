@@ -1,0 +1,20 @@
+name: mmath-t1-test
+
+services:
+  postgres-test:
+    image: postgres:18@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+    environment:
+      POSTGRES_DB: mmath_t1_test
+      POSTGRES_USER: mmath_test
+      POSTGRES_PASSWORD: mmath_test
+    ports:
+      - "127.0.0.1:55434:5432"
+    volumes:
+      - mmath-test-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmath_test -d mmath_t1_test"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+volumes:
+  mmath-test-postgres:

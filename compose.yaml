@@ -1,0 +1,44 @@
+# Base deployment: the API and its same-origin edge. PostgreSQL and the public TLS edge are external
+# (operator-managed): supply MMATH_DATABASE_URL and, for public mode, attach to the external Traefik
+# network via deploy/compose.public.yaml. No database or API port is ever published here.
+name: mmath
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      MMATH_DATABASE_URL: ${MMATH_DATABASE_URL:?Set the external PostgreSQL DSN in .env}
+    command: ["/app/backend/.venv/bin/alembic", "-c", "/app/backend/alembic.ini", "upgrade", "head"]
+    restart: "no"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      MMATH_DATABASE_URL: ${MMATH_DATABASE_URL:?Set the external PostgreSQL DSN in .env}
+      MMATH_ORIGIN: ${MMATH_ORIGIN:?Set MMATH_ORIGIN in .env}
+      MMATH_MODE: ${MMATH_MODE:?Set MMATH_MODE to public or lan-http in .env}
+    command: ["/app/backend/.venv/bin/uvicorn", "mental_math.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "/app/backend/.venv/bin/python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health/ready', timeout=3).status == 200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,7 @@
+.pad { display: grid; grid-template-columns: repeat(3, minmax(64px, 1fr)); gap: 12px; margin: 16px 0; }
+.key { min-height: 64px; min-width: 64px; font-size: 1.6rem; background: #fff; color: #243247; border: 2px solid #697b83; }
+.key:hover { background: #eef4f3; }
+.primary { grid-column: span 2; background: #126d67; color: #fff; border: 0; }
+.primary:hover { background: #0b5550; }
+@media (max-width: 360px) { .pad { gap: 8px; } .key { min-height: 56px; } }
+.choice { grid-column: span 1; font-size: 1.4rem; }
