@@ -468,6 +468,7 @@ export interface components {
         };
         /** ProgressView */
         ProgressView: {
+            rewards: components["schemas"]["RewardsView"];
             /** Sessions */
             sessions: components["schemas"]["SessionHistory"][];
             /** Skills */
@@ -503,6 +504,16 @@ export interface components {
             } | null;
             /** Skill */
             skill: string;
+        };
+        /**
+         * RewardsView
+         * @description `count` finished rounds with at least half answered; `latest` is the sticker code `<theme>-<1..8>` or null.
+         */
+        RewardsView: {
+            /** Count */
+            count: number;
+            /** Latest */
+            latest: string | null;
         };
         /** SessionHistory */
         SessionHistory: {

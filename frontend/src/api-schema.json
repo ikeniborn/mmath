@@ -594,6 +594,9 @@
       },
       "ProgressView": {
         "properties": {
+          "rewards": {
+            "$ref": "#/components/schemas/RewardsView"
+          },
           "sessions": {
             "items": {
               "$ref": "#/components/schemas/SessionHistory"
@@ -616,7 +619,8 @@
         "required": [
           "skills",
           "sessions",
-          "total_sessions"
+          "total_sessions",
+          "rewards"
         ],
         "title": "ProgressView",
         "type": "object"
@@ -712,6 +716,32 @@
           "prompt"
         ],
         "title": "PublicProblem",
+        "type": "object"
+      },
+      "RewardsView": {
+        "description": "`count` finished rounds with at least half answered; `latest` is the sticker code `<theme>-<1..8>` or null.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest"
+          }
+        },
+        "required": [
+          "count",
+          "latest"
+        ],
+        "title": "RewardsView",
         "type": "object"
       },
       "SessionHistory": {

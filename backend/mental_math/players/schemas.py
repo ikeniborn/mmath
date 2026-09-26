@@ -96,7 +96,15 @@ class SessionHistory(BaseModel):
     settings: dict
 
 
+class RewardsView(BaseModel):
+    """`count` finished rounds with at least half answered; `latest` is the sticker code `<theme>-<1..8>` or null."""
+
+    count: int
+    latest: str | None
+
+
 class ProgressView(BaseModel):
     skills: list[SkillProgress]
     sessions: list[SessionHistory]
     total_sessions: int
+    rewards: RewardsView

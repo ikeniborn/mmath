@@ -11,6 +11,7 @@ from mental_math.game.catalogue import eligible_pairs, supported_bands
 from mental_math.game.models import LearningSession
 from mental_math.players.models import Player
 from mental_math.players.schemas import PlayerInput, PlayerPatch, PlayerView, ProgressView
+from mental_math.players.rewards import rewards_for
 from mental_math.players.service import owned_player
 from mental_math.student.models import PlayerSkill
 
@@ -72,8 +73,10 @@ async def progress(player_id: UUID, request: Request, limit: int = Query(default
     skills = (await db.scalars(select(PlayerSkill).where(PlayerSkill.player_id == player.id).order_by(PlayerSkill.skill))).all()
     total = await db.scalar(select(func.count()).select_from(LearningSession).where(LearningSession.player_id == player.id))
     sessions = (await db.scalars(select(LearningSession).where(LearningSession.player_id == player.id).order_by(LearningSession.started_at.desc(), LearningSession.id.desc()).limit(limit).offset(offset))).all()
+    all_sessions = (await db.scalars(select(LearningSession).where(LearningSession.player_id == player.id))).all()
     return {
         "skills": [{"skill": row.skill, "band": row.band, "attempts": row.attempts, "correct": row.correct, "mastery": row.mastery, "formula_version": row.formula_version, "updated_at": row.updated_at} for row in skills],
         "sessions": [{"id": row.id, "state": row.state, "started_at": row.started_at, "finished_at": row.finished_at, "answered_count": row.answered_count, "correct_count": row.correct_count, "active_ms": row.active_ms, "settings": row.settings} for row in sessions],
         "total_sessions": total,
+        "rewards": rewards_for(list(all_sessions), player.theme),
     }
