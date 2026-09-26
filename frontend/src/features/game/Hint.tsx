@@ -8,6 +8,7 @@ export default function Hint({ hint, theme }: { hint: HintView; theme: Theme }) 
   const { t } = useT();
   const [iconA, iconB] = THEME_ICONS[theme];
   const params = { a: hint.operand_a, b: hint.operand_b };
+  if (hint.kind === 'scene') return null;  // the early scene redraws itself with scaffolding (see EarlyTask hinted)
   const icons = (count: number, icon: string, faded = false) => Array.from({ length: count }, (_, index) => <span key={index} className={`${styles.icon} ${faded ? styles.faded : ''}`} aria-hidden="true">{icon}</span>);
   if (hint.kind === 'counters' && hint.operation === 'subtraction') {
     return <div className={styles.hint} role="img" aria-label={t('hint.sub', params)}>

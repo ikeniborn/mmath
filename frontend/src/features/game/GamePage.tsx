@@ -146,7 +146,7 @@ export default function GamePage({ players }: { players: Player[] }) {
     {answering && snapshot.hint && <Hint hint={snapshot.hint} theme={player.theme} />}
     {answering ? <>
       <p role="status" aria-live="polite">{message}</p>
-      {earlyInput && problem ? <EarlyTask problem={problem} theme={player.theme} disabled={status !== 'ready'} onAnswer={submitValue} /> : pictureChoice ? null : choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
+      {earlyInput && problem ? <EarlyTask problem={problem} theme={player.theme} disabled={status !== 'ready'} onAnswer={submitValue} hinted={Boolean(snapshot.hint)} /> : pictureChoice ? null : choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
       {picture && canSpeak && <button type="button" className="secondary" aria-label={t('early.repeat')} onClick={() => speak(spoken)}>🔊</button>}
       {!snapshot.hint && <button type="button" className="secondary" disabled={status !== 'ready'} onClick={hint}>{t('game.hint')}</button>}
     </> : <Feedback snapshot={snapshot} note={message} onAdvance={advance} />}

@@ -55,7 +55,7 @@ test('automatic child sees themed counters in the hint', async ({ page }) => {
   await page.getByLabel('Пароль', { exact: true }).fill('correct horse battery staple');
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click();
   await page.getByLabel('Имя').fill('Оля');
-  await page.getByLabel('Возраст').selectOption('5');
+  await page.getByLabel('Возраст').selectOption('6');  // ages 4-5 play in picture mode, where the scene itself is the hint
   await page.getByLabel('Оформление').selectOption('dolls');
   await page.getByRole('button', { name: 'Создать профиль' }).click();
   await page.getByRole('link', { name: 'Играть' }).click();

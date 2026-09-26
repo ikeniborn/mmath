@@ -3,7 +3,7 @@ import PictureCards from './PictureCards';
 import { CountScene, FiveFrame, MatchScene, OrderTowers, PatternRow, PickScene, QuickLook, ShareScene } from './scenes';
 import { isEarly, optionsOf } from './types';
 
-type Props = { problem: PublicProblem; theme: Theme; disabled: boolean; onAnswer: (value: number) => void };
+type Props = { problem: PublicProblem; theme: Theme; disabled: boolean; onAnswer: (value: number) => void; hinted?: boolean };
 
 /** Picture-first task for a 4-5-year-old: a scene per early kind, or number cards for a numeric task issued with options. */
 export default function EarlyTask(props: Props) {

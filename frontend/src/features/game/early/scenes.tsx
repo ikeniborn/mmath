@@ -6,7 +6,7 @@ import styles from './Early.module.css';
 import PictureCards from './PictureCards';
 import { itemsOf, listOf, numberOf, optionsOf, pickItemsOf, type Item } from './types';
 
-export type SceneProps = { problem: PublicProblem; theme: Theme; disabled: boolean; onAnswer: (value: number) => void };
+export type SceneProps = { problem: PublicProblem; theme: Theme; disabled: boolean; onAnswer: (value: number) => void; hinted?: boolean };
 
 function Grid({ items, theme, marked, onTap, hidden = false, label }: { items: Item[]; theme: Theme; marked?: Set<number>; onTap?: (index: number) => void; hidden?: boolean; label: string }) {
   return <div className={`task-scene ${styles.grid}`} data-hidden={hidden ? 'true' : undefined}>
@@ -49,7 +49,7 @@ export function MatchScene({ problem, theme, disabled, onAnswer }: SceneProps) {
   </>;
 }
 
-export function QuickLook({ problem, theme, disabled, onAnswer }: SceneProps) {
+export function QuickLook({ problem, theme, disabled, onAnswer, hinted = false }: SceneProps) {
   const { t } = useT();
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
@@ -57,8 +57,9 @@ export function QuickLook({ problem, theme, disabled, onAnswer }: SceneProps) {
     const timer = setTimeout(() => setHidden(true), numberOf(problem, 'reveal_ms', 1500));
     return () => clearTimeout(timer);
   }, [problem.id]);
+  // A hint (exposed once, recorded server-side) keeps the scene visible: the scaffold is the scene itself.
   return <>
-    <Grid items={itemsOf(problem)} theme={theme} hidden={hidden} label={t('early.object')} />
+    <Grid items={itemsOf(problem)} theme={theme} hidden={hidden && !hinted} label={t('early.object')} />
     <PictureCards options={optionsOf(problem) ?? []} theme={theme} kind="number" disabled={disabled} onChoose={onAnswer} />
   </>;
 }
