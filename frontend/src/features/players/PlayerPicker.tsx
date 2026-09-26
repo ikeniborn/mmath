@@ -12,7 +12,7 @@ export default function PlayerPicker({ players, onChange }: { players: Player[];
     const element = event.currentTarget;  // React nulls currentTarget once the handler yields
     const form = new FormData(element);
     try {
-      await api('/players', 'POST', { name: form.get('name'), age: Number(form.get('age')), topics: ['addition'], theme: form.get('theme') });
+      await api('/players', 'POST', { name: form.get('name'), age: Number(form.get('age')), theme: form.get('theme') });
       await onChange();
       element.reset();
       setError('');

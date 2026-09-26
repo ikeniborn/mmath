@@ -16,14 +16,15 @@ test('picture mode decides the scene; outside picture mode and for large numbers
 
 test('addition fills a basket, subtraction fades the leaving part, missing hides the blanked objects behind a garage', () => {
   const { container: sum } = render(<TaskPicture problem={add} theme="cars" picture />);
-  expect(sum.querySelector('.task-picture')?.textContent).toBe('🚗🚗🚗+🚙🚙');
+  expect(sum.querySelectorAll('.task-picture svg').length).toBe(5);
+  expect(sum.querySelector('.task-picture')?.textContent).toBe('+');
   expect(sum.querySelector('[data-basket]')).toBeTruthy();
   expect(sum.querySelector('.task-picture')?.getAttribute('aria-hidden')).toBe('true');
   const { container: diff } = render(<TaskPicture problem={{ ...add, operation: 'subtraction', operand_a: 5, operand_b: 2 }} theme="flowers" picture />);
-  expect(diff.querySelectorAll('.task-picture span').length).toBe(5);
+  expect(diff.querySelectorAll('.task-picture svg').length).toBe(5);
   expect(diff.querySelectorAll('.task-picture [class*="faded"]').length).toBe(2);
   const { container: missing } = render(<TaskPicture problem={{ ...add, kind: 'missing', operand_a: 3, operand_b: null, prompt: { blank: 'b', result: 5 } }} theme="construction" picture />);
-  expect(missing.querySelector('.task-picture')?.textContent).toBe('🚜🚜🚜');
+  expect(missing.querySelectorAll('.task-picture svg').length).toBe(3);
   expect(missing.querySelectorAll('.task-picture [class*="cell"]').length).toBe(2);
   expect(missing.querySelector('[data-garage]')).toBeTruthy();
 });
@@ -32,8 +33,8 @@ test('compare draws two tappable piles and a same card; the piles submit 1 / -1,
   const onAnswer = vi.fn();
   render(<TaskPicture problem={{ ...add, skill: 'compare', operation: 'compare', kind: 'compare', operand_a: 3, operand_b: 5, prompt: { left: '3', right: '5' } }} theme="cars" picture onAnswer={onAnswer} disabled={false} />);
   const piles = screen.getAllByRole('button', { name: /кучка/i });
-  expect(piles[0].querySelectorAll('span').length).toBe(3);
-  expect(piles[1].querySelectorAll('span').length).toBe(5);
+  expect(piles[0].querySelectorAll('svg').length).toBe(3);
+  expect(piles[1].querySelectorAll('svg').length).toBe(5);
   fireEvent.click(piles[1]);
   expect(onAnswer).toHaveBeenCalledWith(-1);
   fireEvent.click(screen.getByRole('button', { name: 'Одинаково' }));
@@ -44,7 +45,7 @@ test('parity draws pairs with the odd one out and Yes/No cards', () => {
   const onAnswer = vi.fn();
   const { container } = render(<TaskPicture problem={{ ...add, skill: 'odd_even', operation: 'parity', kind: 'parity', operand_a: 5, operand_b: 0, prompt: { value: 5 } }} theme="flowers" picture onAnswer={onAnswer} disabled={false} />);
   expect(container.querySelectorAll('[data-pair]').length).toBe(3);
-  expect(container.querySelectorAll('[data-pair] span').length).toBe(5);
+  expect(container.querySelectorAll('[data-pair] svg').length).toBe(5);
   fireEvent.click(screen.getByRole('button', { name: 'Нет' }));
   expect(onAnswer).toHaveBeenCalledWith(1);
 });

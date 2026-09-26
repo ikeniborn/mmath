@@ -11,6 +11,7 @@ import { clearPending, loadPending, savePending, type PendingSubmission } from '
 import { gameReducer, initialState } from './sessionReducer';
 import ChoicePad from './ChoicePad';
 import EarlyTask, { hasEarlyInput } from './early/EarlyTask';
+import { spokenTask, useSpeech } from './early/useSpeech';
 import { choices, isChoice, promptParts } from './prompt';
 import { useT } from '../../i18n';
 
@@ -31,10 +32,11 @@ function useActiveTimer(problemId: string | undefined) {
 }
 
 export default function GamePage({ players }: { players: Player[] }) {
-  const { t, name } = useT();
+  const { t, name, lang } = useT();
   const { id = '' } = useParams();
   const player = players.find(item => item.id === id);
   const [state, dispatch] = useReducer(gameReducer, initialState);
+  const { speak, supported: canSpeak } = useSpeech(lang);
   const [message, setMessage] = useState('');
   const heading = useRef<HTMLHeadingElement>(null);
   const { snapshot, entry, status } = state;
@@ -79,6 +81,14 @@ export default function GamePage({ players }: { players: Player[] }) {
 
   useEffect(() => { if (player) void load(); }, [id, player?.id]);
   useEffect(() => { heading.current?.focus(); }, [snapshot?.phase, snapshot?.state, snapshot?.current_problem?.id]);
+  const pictureMode = Boolean(snapshot?.settings.picture_mode);
+  const spoken = snapshot?.current_problem && pictureMode ? spokenTask(promptParts(snapshot.current_problem, t, true), lang, expression => t('speak.expression', { expression })) : '';
+  // Picture mode reads every task and its feedback aloud; a child aged 4-5 does not read the prompt.
+  useEffect(() => {
+    if (!pictureMode || !snapshot || snapshot.state !== 'active') return;
+    if (snapshot.phase === 'answer') speak(spoken);
+    else if (snapshot.feedback) speak(t(snapshot.feedback.correct ? 'game.correct' : 'game.wrong'));
+  }, [pictureMode, snapshot?.phase, snapshot?.current_problem?.id, snapshot?.state]);
 
   if (!player) return <section><h2>{t('notFound.title')}</h2><Link to="/">{t('notFound.back')}</Link></section>;
 
@@ -137,6 +147,7 @@ export default function GamePage({ players }: { players: Player[] }) {
     {answering ? <>
       <p role="status" aria-live="polite">{message}</p>
       {earlyInput && problem ? <EarlyTask problem={problem} theme={player.theme} disabled={status !== 'ready'} onAnswer={submitValue} /> : pictureChoice ? null : choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
+      {picture && canSpeak && <button type="button" className="secondary" aria-label={t('early.repeat')} onClick={() => speak(spoken)}>🔊</button>}
       {!snapshot.hint && <button type="button" className="secondary" disabled={status !== 'ready'} onClick={hint}>{t('game.hint')}</button>}
     </> : <Feedback snapshot={snapshot} note={message} onAdvance={advance} />}
     {status === 'offline' && <button type="button" onClick={retry}>{t('app.retry')}</button>}
