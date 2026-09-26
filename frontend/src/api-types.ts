@@ -424,18 +424,20 @@ export interface components {
             /** Topics */
             topics?: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison" | "early")[] | null;
         };
-        /** PlayerView */
+        /**
+         * PlayerView
+         * @description Resolved profile: every default is filled in, so no field is nullable in the contract.
+         */
         PlayerView: {
             /** Age */
             age: number;
             /**
              * Avatar
-             * @default star
              * @enum {string}
              */
             avatar: "star" | "rocket" | "fox" | "owl";
             /** Difficulty Band */
-            difficulty_band?: number | null;
+            difficulty_band: number;
             /**
              * Id
              * Format: uuid
@@ -443,28 +445,28 @@ export interface components {
             id: string;
             /**
              * Mode
-             * @default automatic
              * @enum {string}
              */
             mode: "automatic" | "fixed";
             /** Name */
             name: string;
-            /** Round Tasks */
-            round_tasks?: (6 | 10) | null;
+            /**
+             * Round Tasks
+             * @enum {integer}
+             */
+            round_tasks: 6 | 10;
             /**
              * Session Minutes
-             * @default 10
              * @enum {integer}
              */
             session_minutes: 5 | 10 | 15;
             /**
              * Theme
-             * @default flowers
              * @enum {string}
              */
             theme: "flowers" | "dolls" | "cars" | "construction";
             /** Topics */
-            topics?: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison" | "early")[] | null;
+            topics: ("addition" | "subtraction" | "counting" | "multiplication" | "division" | "comparison" | "early")[];
         };
         /** ProgressView */
         ProgressView: {

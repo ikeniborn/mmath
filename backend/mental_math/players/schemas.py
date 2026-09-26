@@ -71,8 +71,19 @@ class PlayerPatch(BaseModel):
         return self
 
 
-class PlayerView(PlayerInput):
+class PlayerView(BaseModel):
+    """Resolved profile: every default is filled in, so no field is nullable in the contract."""
+
     id: UUID
+    name: str
+    age: int
+    avatar: Literal["star", "rocket", "fox", "owl"]
+    topics: list[Topic]
+    mode: Literal["automatic", "fixed"]
+    difficulty_band: int
+    session_minutes: Literal[5, 10, 15]
+    theme: Literal["flowers", "dolls", "cars", "construction"]
+    round_tasks: Literal[6, 10]
 
 
 class SkillProgress(BaseModel):

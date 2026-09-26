@@ -473,15 +473,13 @@
         "type": "object"
       },
       "PlayerView": {
+        "description": "Resolved profile: every default is filled in, so no field is nullable in the contract.",
         "properties": {
           "age": {
-            "maximum": 10.0,
-            "minimum": 4.0,
             "title": "Age",
             "type": "integer"
           },
           "avatar": {
-            "default": "star",
             "enum": [
               "star",
               "rocket",
@@ -492,17 +490,8 @@
             "type": "string"
           },
           "difficulty_band": {
-            "anyOf": [
-              {
-                "maximum": 4.0,
-                "minimum": 0.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Difficulty Band"
+            "title": "Difficulty Band",
+            "type": "integer"
           },
           "id": {
             "format": "uuid",
@@ -510,7 +499,6 @@
             "type": "string"
           },
           "mode": {
-            "default": "automatic",
             "enum": [
               "automatic",
               "fixed"
@@ -519,28 +507,18 @@
             "type": "string"
           },
           "name": {
-            "maxLength": 40,
-            "minLength": 1,
             "title": "Name",
             "type": "string"
           },
           "round_tasks": {
-            "anyOf": [
-              {
-                "enum": [
-                  6,
-                  10
-                ],
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
+            "enum": [
+              6,
+              10
             ],
-            "title": "Round Tasks"
+            "title": "Round Tasks",
+            "type": "integer"
           },
           "session_minutes": {
-            "default": 10,
             "enum": [
               5,
               10,
@@ -550,7 +528,6 @@
             "type": "integer"
           },
           "theme": {
-            "default": "flowers",
             "enum": [
               "flowers",
               "dolls",
@@ -561,33 +538,33 @@
             "type": "string"
           },
           "topics": {
-            "anyOf": [
-              {
-                "items": {
-                  "enum": [
-                    "addition",
-                    "subtraction",
-                    "counting",
-                    "multiplication",
-                    "division",
-                    "comparison",
-                    "early"
-                  ],
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Topics"
+            "items": {
+              "enum": [
+                "addition",
+                "subtraction",
+                "counting",
+                "multiplication",
+                "division",
+                "comparison",
+                "early"
+              ],
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
           }
         },
         "required": [
+          "id",
           "name",
           "age",
-          "id"
+          "avatar",
+          "topics",
+          "mode",
+          "difficulty_band",
+          "session_minutes",
+          "theme",
+          "round_tasks"
         ],
         "title": "PlayerView",
         "type": "object"
