@@ -115,27 +115,28 @@ export default function GamePage({ players }: { players: Player[] }) {
   if (snapshot.state === 'finished') return <SessionSummary player={player} snapshot={snapshot} headingRef={heading} onAgain={() => void load()} />;
 
   const problem = snapshot.current_problem;
-  const parts = problem ? promptParts(problem, t) : [];
   const choice = problem ? isChoice(problem) : false;
   const picture = Boolean(snapshot.settings.picture_mode);  // ages 4-5: scenes and cards replace the keypad
   const earlyInput = picture && problem !== null && hasEarlyInput(problem);
+  const pictureChoice = picture && problem !== null && (problem.kind === 'compare' || problem.kind === 'parity');  // the scene itself is the input
+  const parts = problem ? promptParts(problem, t, picture) : [];
   const expression = parts.map(part => part ?? '?').join('');
   const answering = snapshot.phase === 'answer';
   const shown = answering ? (entry || '?') : String(snapshot.feedback?.submitted_answer ?? '');
   return <section className="game" onKeyDown={event => {
-    if (!answering || status !== 'ready' || choice || earlyInput) return;
+    if (!answering || status !== 'ready' || choice || earlyInput || pictureChoice) return;
     if (/^[0-9]$/.test(event.key)) dispatch({ type: 'digit', digit: event.key });
     else if (event.key === 'Backspace') dispatch({ type: 'erase' });
     else if (event.key === 'Enter') void submit();
   }}>
     <h2 ref={heading} tabIndex={-1}>{answering ? t('game.task', { n: problem?.ordinal ?? 0, total: snapshot.total_problems }) : (snapshot.feedback?.correct ? t('game.correct') : t('game.wrong'))}</h2>
     {problem && <p className="band">{t('game.level', { skill: name('skill', problem.skill), band: problem.band })}</p>}
-    {problem && <TaskPicture problem={problem} age={player.age} theme={player.theme} />}
+    {problem && <TaskPicture problem={problem} theme={player.theme} picture={picture} disabled={status !== 'ready' || !answering} onAnswer={submitValue} />}
     <p className="expression" aria-label={t('game.expression', { expression })}>{parts.map((part, index) => part === null ? <span key={index} className="answer">{shown}</span> : <span key={index}>{part}</span>)}</p>
     {answering && snapshot.hint && <Hint hint={snapshot.hint} theme={player.theme} />}
     {answering ? <>
       <p role="status" aria-live="polite">{message}</p>
-      {earlyInput && problem ? <EarlyTask problem={problem} theme={player.theme} disabled={status !== 'ready'} onAnswer={submitValue} /> : choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
+      {earlyInput && problem ? <EarlyTask problem={problem} theme={player.theme} disabled={status !== 'ready'} onAnswer={submitValue} /> : pictureChoice ? null : choice && problem ? <ChoicePad options={choices(problem, t)} disabled={status !== 'ready'} onChoose={submitValue} /> : <NumberPad disabled={status !== 'ready'} canSubmit={entry !== ''} onDigit={digit => dispatch({ type: 'digit', digit })} onErase={() => dispatch({ type: 'erase' })} onSubmit={submit} />}
       {!snapshot.hint && <button type="button" className="secondary" disabled={status !== 'ready'} onClick={hint}>{t('game.hint')}</button>}
     </> : <Feedback snapshot={snapshot} note={message} onAdvance={advance} />}
     {status === 'offline' && <button type="button" onClick={retry}>{t('app.retry')}</button>}

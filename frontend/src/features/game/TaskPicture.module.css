@@ -1,0 +1,14 @@
+.basket { padding: 10px 14px 14px; border: 3px solid #a8742a; border-top-width: 6px; border-radius: 0 0 22px 22px; background: #f3e3bf; }
+.garage { display: inline-flex; gap: 6px; padding: 8px 10px 6px; border: 3px solid #697b83; border-top-width: 10px; border-radius: 8px 8px 4px 4px; background: #d9e2e6; }
+.leaving { display: inline-block; animation: leave 600ms ease-out forwards; }
+@keyframes leave { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .leaving { animation: none; } }
+.train { display: flex; gap: 6px; justify-content: center; align-items: center; }
+.carriage { min-width: 64px; min-height: 56px; display: grid; place-items: center; border: 3px solid #126d67; border-radius: 10px 10px 4px 4px; background: #fff; font-size: 1.8rem; font-weight: 700; }
+.carriage[data-carriage="empty"] { border-style: dashed; color: #dd7a14; }
+.pair { display: inline-flex; gap: 2px; padding: 4px 6px; border: 2px dashed #c7b46a; border-radius: 10px; margin-right: 6px; }
+.piles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pile { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-content: flex-start; min-height: 112px; padding: 10px; border: 3px solid #697b83; border-radius: 18px; background: #fff; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.choice { min-height: 64px; font-size: 1.4rem; border-radius: 16px; }
+.interactive { background: #fff; }

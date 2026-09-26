@@ -10,8 +10,10 @@ export type Translate = (key: Key, params?: Record<string, string | number>) => 
 /** Display parts of a task: strings plus one `null` slot where the child's answer goes (numeric kinds only). */
 const EARLY_PROMPTS: Record<string, Key> = { count: 'prompt.count', match: 'prompt.match', subitize: 'prompt.subitize', pattern: 'prompt.pattern', frame: 'prompt.frame', order: 'prompt.order', share: 'prompt.share' };
 
-export function promptParts(problem: PublicProblem, t: Translate): (string | null)[] {
+export function promptParts(problem: PublicProblem, t: Translate, picture = false): (string | null)[] {
   const { kind, prompt } = problem;
+  if (picture && kind === 'compare') return [t('prompt.comparePicture')];
+  if (picture && kind === 'parity') return [t('prompt.parityPicture')];
   if (kind === 'pick') return [t(`prompt.pick.${String(prompt?.attribute)}.${String(prompt?.target)}` as Key)];
   if (EARLY_PROMPTS[kind]) return [t(EARLY_PROMPTS[kind])];
   const a = problem.operand_a ?? 0;  // null only for the blanked operand of a missing task, which is never rendered
